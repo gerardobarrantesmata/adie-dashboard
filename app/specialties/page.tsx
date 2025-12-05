@@ -1,204 +1,199 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 type SpecialtyId =
   | "general"
+  | "ortho"
+  | "perio"
+  | "prostho"
+  | "pediatric"
   | "preventive"
   | "implants"
-  | "perio"
   | "radiology"
-  | "pediatric"
-  | "prostho"
-  | "omfs"
-  | "ortho";
+  | "oralSurgery";
 
-const SPECIALTIES: Record<
-  SpecialtyId,
-  { label: string; description: string; href?: string }
-> = {
-  general: {
-    label: "General Dentistry",
-    description: "Point of entry for all treatments.",
-    href: "/specialties/general",
-  },
-  preventive: {
-    label: "Preventive Dentistry",
-    description: "Check-ups, prophylaxis, sealants and basic preventive care.",
-  },
-  implants: {
-    label: "Implants",
-    description: "Implant planning, surgery and prosthetic restorations.",
-  },
-  perio: {
-    label: "Periodontic Dentistry",
-    description:
-      "Periodontal chart, pockets, diagnosis and non-surgical / surgical treatment.",
-    href: "/specialties/periodontics",
-  },
-  radiology: {
-    label: "Radiology",
-    description: "CBCT, panoramic and intraoral imaging modules.",
-  },
-  pediatric: {
-    label: "Pediatric Dentistry",
-    description: "Pediatric records, growth tracking and behavior notes.",
-  },
-  prostho: {
-    label: "Prosthodontics",
-    description: "Crowns, bridges, dentures and complex rehabilitations.",
-  },
-  omfs: {
-    label: "Oral & Maxillofacial Surgery",
-    description:
-      "Surgical planning, maxillofacial procedures, digital reports and consents.",
-    // Cuando tengamos el módulo de OMFS, agregamos aquí: href: "/specialties/omfs"
-  },
-  ortho: {
-    label: "Orthodontics",
-    description: "Ortho assessments, records, brackets and aligner workflow.",
-    href: "/specialties/orthodontics",
-  },
+const SPECIALTY_LABEL: Record<SpecialtyId, string> = {
+  general: "General Dentistry",
+  ortho: "Orthodontics",
+  perio: "Periodontic Dentistry",
+  prostho: "Prosthodontics",
+  pediatric: "Pediatric Dentistry",
+  preventive: "Preventive Dentistry",
+  implants: "Implants",
+  radiology: "Radiology",
+  oralSurgery: "Oral & Maxillofacial Surgery",
+};
+
+const SPECIALTY_DESCRIPTION: Record<SpecialtyId, string> = {
+  general: "Point of entry for all treatments.",
+  ortho: "Full orthodontic workflows, records and aligners.",
+  perio: "Periodontal chart, pockets, diagnosis and treatment.",
+  prostho: "Fixed, removable and implant-supported prosthetics.",
+  pediatric:
+    "Growth, eruption, caries risk and behavior management for children.",
+  preventive: "Prophylaxis, sealants, fluoride and recall programs.",
+  implants:
+    "3D implant planning, torque, guided surgery and prosthetic connection.",
+  radiology: "Radiology, CBCT, ceph and AI-assisted image review.",
+  oralSurgery: "Hospital-level oral & maxillofacial surgery workflows.",
+};
+
+const SPECIALTY_ROUTE: Partial<Record<SpecialtyId, string>> = {
+  general: "/specialties/general",
+  ortho: "/specialties/orthodontics",
+  perio: "/specialties/periodontics",
+  prostho: "/specialties/prosthodontics",
+  pediatric: "/specialties/pediatric",
+  oralSurgery: "/specialties/oral-surgery",
+  implants: "/specialties/implants",
+  radiology: "/specialties/radiology",
 };
 
 type SpecialtyButtonProps = {
   id: SpecialtyId;
-  selected: SpecialtyId;
+  label: string;
+  active: boolean;
+  href?: string;
   onSelect: (id: SpecialtyId) => void;
 };
 
-function SpecialtyButton({ id, selected, onSelect }: SpecialtyButtonProps) {
-  const spec = SPECIALTIES[id];
-  const isActive = selected === id;
+function SpecialtyButton({
+  id,
+  label,
+  active,
+  href,
+  onSelect,
+}: SpecialtyButtonProps) {
+  const baseClasses =
+    "w-full rounded-xl border px-6 py-3 text-sm md:text-[15px] flex items-center justify-center transition-all";
+  const activeClasses =
+    "border-sky-400/80 bg-sky-500/10 shadow-[0_0_30px_rgba(56,189,248,0.45)] text-sky-100";
+  const inactiveClasses =
+    "border-slate-700/80 bg-slate-900/60 text-slate-200 hover:border-sky-500/50 hover:text-sky-100";
 
   const content = (
-    <div
-      className={[
-        "w-full rounded-xl border px-6 py-3 text-left text-sm transition-all",
-        "bg-slate-900/60 border-slate-800 hover:border-slate-500/70 hover:bg-slate-900",
-        isActive
-          ? "border-sky-500/80 bg-sky-500/10 shadow-[0_0_35px_rgba(56,189,248,0.4)]"
-          : "",
-      ].join(" ")}
+    <button
+      type="button"
+      onClick={() => onSelect(id)}
+      className={`${baseClasses} ${active ? activeClasses : inactiveClasses}`}
     >
-      <p className="font-semibold text-slate-100">{spec.label}</p>
-      <p className="mt-1 text-[11px] text-slate-400">{spec.description}</p>
-    </div>
+      <span className="font-medium tracking-[0.03em]">{label}</span>
+    </button>
   );
 
-  if (spec.href) {
+  if (href) {
     return (
-      <Link
-        href={spec.href}
-        onMouseEnter={() => onSelect(id)}
-        onFocus={() => onSelect(id)}
-      >
+      <Link href={href} scroll={false} className="w-full">
         {content}
       </Link>
     );
   }
 
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(id)}
-      onMouseEnter={() => onSelect(id)}
-      className="w-full"
-    >
-      {content}
-    </button>
-  );
+  return content;
 }
 
 export default function SpecialtiesPage() {
-  const router = useRouter();
   const [selected, setSelected] = useState<SpecialtyId>("general");
-  const selectedSpec = SPECIALTIES[selected];
-
-  const handleCoreClick = () => {
-    router.push("/specialties/general");
-  };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 px-8 py-10">
-      <section className="mx-auto max-w-6xl">
+    <main className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto max-w-6xl px-4 pb-24 pt-10">
         {/* Header */}
-        <p className="text-[11px] tracking-[0.25em] uppercase text-sky-400 mb-1">
-          Specialties · Layer 2
-        </p>
-        <h1 className="text-2xl md:text-3xl font-semibold text-slate-50">
-          Specialties Universe
-        </h1>
-        <p className="mt-2 text-sm text-slate-400 max-w-2xl">
-          Touch (or click) a specialty to enter its deep layer. Each node will
-          be a full module with forms, protocols and a specialty-specific dental
-          chart.
-        </p>
+        <header className="mb-10 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-teal-400">
+              Specialties · Layer 2
+            </p>
+            <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
+              Specialties Universe
+            </h1>
+            <p className="mt-2 max-w-xl text-xs md:text-sm text-slate-400">
+              Touch (or click) a specialty to enter its deep layer. Each node
+              will be a full module with forms, protocols and a specialty-
+              specific dental chart.
+            </p>
+          </div>
 
-        {/* Card container */}
-        <div className="mt-10 rounded-3xl border border-slate-900 bg-slate-950/70 p-8 md:p-10 shadow-[0_40px_120px_rgba(15,23,42,0.9)]">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <Link
+            href="/"
+            className="rounded-full border border-slate-700 bg-slate-900/70 px-4 py-1.5 text-xs md:text-sm text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors"
+          >
+            ← Back to Dashboard
+          </Link>
+        </header>
+
+        {/* Universe card */}
+        <section className="mx-auto max-w-4xl rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-950/90 to-slate-950/60 px-6 py-8 md:px-10 md:py-10 shadow-[0_40px_120px_rgba(15,23,42,0.9)]">
+          <div className="grid gap-8 md:grid-cols-[1.2fr_auto_1.2fr] items-center">
             {/* Left column */}
             <div className="space-y-4">
               <SpecialtyButton
                 id="preventive"
-                selected={selected}
+                label={SPECIALTY_LABEL.preventive}
+                active={selected === "preventive"}
                 onSelect={setSelected}
               />
               <SpecialtyButton
                 id="implants"
-                selected={selected}
+                label={SPECIALTY_LABEL.implants}
+                active={selected === "implants"}
+                href={SPECIALTY_ROUTE.implants}
                 onSelect={setSelected}
               />
               <SpecialtyButton
                 id="perio"
-                selected={selected}
+                label={SPECIALTY_LABEL.perio}
+                active={selected === "perio"}
+                href={SPECIALTY_ROUTE.perio}
                 onSelect={setSelected}
               />
             </div>
 
-            {/* Core node + bottom row */}
-            <div className="flex flex-col items-center gap-6">
-              {/* CORE NODE: General Dentistry (usa router.push) */}
-              <button
-                type="button"
-                onClick={handleCoreClick}
-                onMouseEnter={() => setSelected("general")}
-                onFocus={() => setSelected("general")}
-                className="relative w-full max-w-xs rounded-3xl border border-sky-500/60 bg-gradient-to-b from-sky-500/10 via-slate-900/80 to-slate-950/90 px-6 py-8 text-center shadow-[0_0_45px_rgba(56,189,248,0.8)] transition-transform hover:-translate-y-0.5 focus:outline-none"
-              >
-                <div className="absolute -inset-1 rounded-3xl bg-sky-500/20 blur-3xl" />
-                <div className="relative">
-                  <p className="text-[11px] tracking-[0.28em] text-sky-300/80 uppercase mb-2">
+            {/* Core node */}
+            <div className="flex flex-col items-center justify-center">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute -inset-10 rounded-full bg-sky-500/25 blur-3xl" />
+                <div className="relative rounded-3xl border border-sky-400/70 bg-sky-500/10 px-8 py-8 md:px-10 md:py-10 shadow-[0_0_55px_rgba(56,189,248,0.75)]">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-sky-200/80 text-center mb-1">
                     Core Node
                   </p>
-                  <p className="text-xl font-semibold bg-gradient-to-r from-sky-200 via-cyan-200 to-emerald-200 bg-clip-text text-transparent">
-                    General Dentistry
+                  <h2 className="text-xl md:text-2xl font-semibold text-slate-50 text-center">
+                    {SPECIALTY_LABEL.general}
+                  </h2>
+                  <p className="mt-2 text-[11px] text-sky-100/80 text-center max-w-xs">
+                    {SPECIALTY_DESCRIPTION.general}
                   </p>
-                  <p className="mt-2 text-[11px] text-slate-300">
-                    Point of entry for all treatments.
-                  </p>
-                </div>
-              </button>
 
-              {/* Bottom row */}
-              <div className="flex flex-col md:flex-row gap-4 w-full justify-center">
-                <div className="w-full md:w-auto">
-                  <SpecialtyButton
-                    id="omfs"
-                    selected={selected}
-                    onSelect={setSelected}
-                  />
+                  <div className="mt-5">
+                    <SpecialtyButton
+                      id="general"
+                      label={SPECIALTY_LABEL.general}
+                      active={selected === "general"}
+                      href={SPECIALTY_ROUTE.general}
+                      onSelect={setSelected}
+                    />
+                  </div>
                 </div>
-                <div className="w-full md:w-auto">
-                  <SpecialtyButton
-                    id="ortho"
-                    selected={selected}
-                    onSelect={setSelected}
-                  />
-                </div>
+              </div>
+
+              {/* Bottom row under core */}
+              <div className="mt-6 flex w-full flex-col gap-4 md:flex-row">
+                <SpecialtyButton
+                  id="oralSurgery"
+                  label={SPECIALTY_LABEL.oralSurgery}
+                  active={selected === "oralSurgery"}
+                  href={SPECIALTY_ROUTE.oralSurgery}
+                  onSelect={setSelected}
+                />
+                <SpecialtyButton
+                  id="ortho"
+                  label={SPECIALTY_LABEL.ortho}
+                  active={selected === "ortho"}
+                  href={SPECIALTY_ROUTE.ortho}
+                  onSelect={setSelected}
+                />
               </div>
             </div>
 
@@ -206,33 +201,39 @@ export default function SpecialtiesPage() {
             <div className="space-y-4">
               <SpecialtyButton
                 id="radiology"
-                selected={selected}
+                label={SPECIALTY_LABEL.radiology}
+                active={selected === "radiology"}
+                href={SPECIALTY_ROUTE.radiology}
                 onSelect={setSelected}
               />
               <SpecialtyButton
                 id="pediatric"
-                selected={selected}
+                label={SPECIALTY_LABEL.pediatric}
+                active={selected === "pediatric"}
+                href={SPECIALTY_ROUTE.pediatric}
                 onSelect={setSelected}
               />
               <SpecialtyButton
                 id="prostho"
-                selected={selected}
+                label={SPECIALTY_LABEL.prostho}
+                active={selected === "prostho"}
+                href={SPECIALTY_ROUTE.prostho}
                 onSelect={setSelected}
               />
             </div>
           </div>
 
-          {/* Selected description footer */}
-          <div className="mt-8 border-t border-slate-900 pt-4 text-[11px] md:text-xs text-slate-400">
-            <span className="mr-1">Selected specialty:</span>
-            <span className="font-semibold text-sky-300">
-              {selectedSpec.label}
+          {/* Selected description */}
+          <div className="mt-8 border-t border-slate-800 pt-4 text-xs md:text-sm text-slate-400">
+            <span className="text-slate-500">Selected specialty: </span>
+            <span className="font-semibold text-sky-200">
+              {SPECIALTY_LABEL[selected]}
             </span>
-            <span className="mx-1">·</span>
-            <span>{selectedSpec.description}</span>
+            <span className="text-slate-500"> · </span>
+            <span>{SPECIALTY_DESCRIPTION[selected]}</span>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
