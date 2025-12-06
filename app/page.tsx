@@ -88,7 +88,7 @@ export default function Home() {
             Main
           </p>
 
-          {/* IMPORTANTE: aquí está la navegación */}
+          {/* Navegación principal */}
           <NavItem href="/" active theme={theme}>
             Dashboard
           </NavItem>
@@ -97,7 +97,7 @@ export default function Home() {
             Specialties
           </NavItem>
 
-          <NavItem href="#" theme={theme}>
+          <NavItem href="/patients" theme={theme}>
             Patients
           </NavItem>
           <NavItem href="#" theme={theme}>
@@ -171,9 +171,13 @@ export default function Home() {
               Theme: {dark ? "Dark" : "Light"}
             </button>
 
-            <button className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition">
+            {/* NEW APPOINTMENT → Patients */}
+            <Link
+              href="/patients"
+              className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition"
+            >
               New Appointment
-            </button>
+            </Link>
           </div>
         </header>
 
@@ -194,9 +198,6 @@ export default function Home() {
                       Today&apos;s activity at a glance
                     </p>
                   </div>
-                  <button className="text-xs text-sky-400 hover:text-sky-300">
-                    View agenda
-                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
