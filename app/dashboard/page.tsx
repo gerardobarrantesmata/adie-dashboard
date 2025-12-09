@@ -32,11 +32,7 @@ function NavItem({ children, href, active, theme }: NavItemProps) {
     >
       <span
         className={`w-1.5 h-1.5 rounded-full mr-2 opacity-80 ${
-          active
-            ? "bg-sky-400"
-            : dark
-            ? "bg-slate-500"
-            : "bg-slate-400"
+          active ? "bg-sky-400" : dark ? "bg-slate-500" : "bg-slate-400"
         }`}
       />
       {children}
@@ -56,9 +52,7 @@ export default function Home() {
   return (
     <div
       className={`min-h-screen flex ${
-        dark
-          ? "bg-slate-950 text-slate-50"
-          : "bg-slate-100 text-slate-900"
+        dark ? "bg-slate-950 text-slate-50" : "bg-slate-100 text-slate-900"
       }`}
     >
       {/* Sidebar */}
@@ -77,9 +71,7 @@ export default function Home() {
             <p className="text-xs uppercase tracking-[0.15em] text-slate-400">
               ADIE
             </p>
-            <p className="text-sm font-semibold">
-              Astra Dental Intelligence
-            </p>
+            <p className="text-sm font-semibold">Astra Dental Intelligence</p>
           </div>
         </div>
 
@@ -89,7 +81,7 @@ export default function Home() {
           </p>
 
           {/* Navegación principal */}
-          <NavItem href="/" active theme={theme}>
+          <NavItem href="/dashboard" active theme={theme}>
             Dashboard
           </NavItem>
 
@@ -100,9 +92,11 @@ export default function Home() {
           <NavItem href="/patients" theme={theme}>
             Patients
           </NavItem>
-          <NavItem href="#" theme={theme}>
+
+          <NavItem href="/calendar" theme={theme}>
             Calendar
           </NavItem>
+
           <NavItem href="#" theme={theme}>
             Dental Chart
           </NavItem>
@@ -131,9 +125,7 @@ export default function Home() {
         </nav>
 
         <div className="border-t border-slate-800/60 px-4 py-3 text-xs text-slate-400">
-          <p className="font-semibold text-sm">
-            Gerardo Barrantes
-          </p>
+          <p className="font-semibold text-sm">Gerardo Barrantes</p>
           <p>Admin · ADIE Pilot</p>
         </div>
       </aside>
@@ -170,6 +162,14 @@ export default function Home() {
               <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
               Theme: {dark ? "Dark" : "Light"}
             </button>
+
+            {/* Open Calendar */}
+            <Link
+              href="/calendar"
+              className="hidden sm:inline-flex items-center rounded-full border border-sky-500/70 px-3 py-1.5 font-semibold text-[11px] text-sky-300 hover:bg-sky-500/10"
+            >
+              Open Calendar
+            </Link>
 
             {/* NEW APPOINTMENT → Patients */}
             <Link
@@ -277,11 +277,7 @@ export default function Home() {
                 value="248"
                 sub="+18 this month"
               />
-              <MiniKpi
-                label="Visits (30 days)"
-                value="162"
-                sub="On track"
-              />
+              <MiniKpi label="Visits (30 days)" value="162" sub="On track" />
               <MiniKpi label="Total Procedures" value="459" sub="Clinical" />
               <MiniKpi
                 label="Implants in progress"
@@ -297,7 +293,7 @@ export default function Home() {
                   <h2 className="text-sm font-semibold text-slate-100">
                     Most Common Procedures
                   </h2>
-                  <button className="text-[11px] text-sky-400 hover:text-sky-300">
+                <button className="text-[11px] text-sky-400 hover:text-sky-300">
                     View CPT / code map
                   </button>
                 </div>
@@ -415,7 +411,9 @@ export default function Home() {
                 </span>
               </div>
               <ul className="space-y-2 text-slate-200">
-                <li>• Perio pockets chart v2 connected to patient_tooth_chart.</li>
+                <li>
+                  • Perio pockets chart v2 connected to patient_tooth_chart.
+                </li>
                 <li>• Endo apex tracker ready for clinical testing.</li>
                 <li>• Implants module linked with radiology &amp; CBCT.</li>
               </ul>
@@ -450,8 +448,7 @@ type StatCardProps = {
 function StatCard({ label, value, tone }: StatCardProps) {
   const toneMap: Record<StatCardProps["tone"], string> = {
     slate: "bg-slate-800 text-slate-100",
-    emerald:
-      "bg-emerald-500/10 text-emerald-200 border-emerald-500/40",
+    emerald: "bg-emerald-500/10 text-emerald-200 border-emerald-500/40",
     sky: "bg-sky-500/10 text-sky-200 border-sky-500/40",
     rose: "bg-rose-500/10 text-rose-200 border-rose-500/40",
   };
@@ -539,14 +536,10 @@ type TimelineRowProps = {
 function TimelineRow({ time, patient, detail, badge }: TimelineRowProps) {
   return (
     <div className="flex gap-3 items-start">
-      <div className="w-12 text-[11px] text-slate-500 mt-1">
-        {time}
-      </div>
+      <div className="w-12 text-[11px] text-slate-500 mt-1">{time}</div>
       <div className="flex-1 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2.5">
         <div className="flex justify-between items-center mb-1">
-          <p className="text-xs font-semibold text-slate-100">
-            {patient}
-          </p>
+          <p className="text-xs font-semibold text-slate-100">{patient}</p>
           <span className="text-[10px] rounded-full bg-slate-800 px-2 py-0.5 text-slate-300">
             {badge}
           </span>
