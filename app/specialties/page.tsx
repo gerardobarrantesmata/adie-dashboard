@@ -1,239 +1,251 @@
+// app/specialties/page.tsx
 "use client";
 
-import React, { useState } from "react";
 import Link from "next/link";
 
-type SpecialtyId =
-  | "general"
-  | "ortho"
-  | "perio"
-  | "prostho"
-  | "pediatric"
-  | "preventive"
-  | "implants"
-  | "radiology"
-  | "oralSurgery";
+type WorkspaceStatus = "live" | "beta" | "coming";
 
-const SPECIALTY_LABEL: Record<SpecialtyId, string> = {
-  general: "General Dentistry",
-  ortho: "Orthodontics",
-  perio: "Periodontic Dentistry",
-  prostho: "Prosthodontics",
-  pediatric: "Pediatric Dentistry",
-  preventive: "Preventive Dentistry",
-  implants: "Implants",
-  radiology: "Radiology",
-  oralSurgery: "Oral & Maxillofacial Surgery",
+type Workspace = {
+  name: string;
+  description: string;
+  layerLabel: string;
+  href: string;
+  status: WorkspaceStatus;
 };
 
-const SPECIALTY_DESCRIPTION: Record<SpecialtyId, string> = {
-  general: "Point of entry for all treatments.",
-  ortho: "Full orthodontic workflows, records and aligners.",
-  perio: "Periodontal chart, pockets, diagnosis and treatment.",
-  prostho: "Fixed, removable and implant-supported prosthetics.",
-  pediatric:
-    "Growth, eruption, caries risk and behavior management for children.",
-  preventive: "Prophylaxis, sealants, fluoride and recall programs.",
-  implants:
-    "3D implant planning, torque, guided surgery and prosthetic connection.",
-  radiology: "Radiology, CBCT, ceph and AI-assisted image review.",
-  oralSurgery: "Hospital-level oral & maxillofacial surgery workflows.",
-};
+const clinicalWorkspaces: Workspace[] = [
+  {
+    name: "General Dentistry",
+    description: "Chief complaint, history, clinical exam & treatment plan.",
+    layerLabel: "Layer 3 · Clinical record",
+    href: "/specialties/general",
+    status: "live",
+  },
+  {
+    name: "Periodontics",
+    description: "Bone, pockets & maintenance linked to dental chart.",
+    layerLabel: "Layer 3 · Bone & maintenance",
+    href: "/specialties/periodontics",
+    status: "live",
+  },
+  {
+    name: "Endodontics",
+    description: "Apex tracking, working length & obturation quality.",
+    layerLabel: "Layer 3 · Root canal workspace",
+    href: "/specialties/endodontics",
+    status: "beta",
+  },
+  {
+    name: "Orthodontics",
+    description:
+      "Braces & aligners timeline with growth & TMJ links.",
+    layerLabel: "Layer 3 · Braces & aligners",
+    href: "/specialties/orthodontics",
+    status: "live",
+  },
+  {
+    name: "Pediatric Dentistry",
+    description:
+      "Growth, eruption & prevention connected to vaccines.",
+    layerLabel: "Layer 3 · Growth & prevention",
+    href: "/specialties/pediatric",
+    status: "beta",
+  },
+  {
+    name: "Prosthodontics",
+    description:
+      "Crowns, bridges, full-arch and occlusal design.",
+    layerLabel: "Layer 3 · Restorative planning",
+    href: "/specialties/prosthodontics",
+    status: "coming",
+  },
+  {
+    name: "Implants",
+    description:
+      "3D planning, bone safety grid & surgery record.",
+    layerLabel: "Layer 3 · 3D planning",
+    href: "/specialties/implants",
+    status: "live",
+  },
+  {
+    name: "Radiology",
+    description:
+      "Imaging uploads linked to AI bone & caries analysis.",
+    layerLabel: "Layer 3 · Imaging & AI",
+    href: "/specialties/radiology",
+    status: "live",
+  },
+  {
+    name: "Oral & Maxillofacial Surgery",
+    description:
+      "Extractions, trauma, orthognathic & hospital cases.",
+    layerLabel: "Layer 3 · Surgical hub",
+    href: "/specialties/oral-surgery",
+    status: "coming",
+  },
+];
 
-const SPECIALTY_ROUTE: Partial<Record<SpecialtyId, string>> = {
-  general: "/specialties/general",
-  ortho: "/specialties/orthodontics",
-  perio: "/specialties/periodontics",
-  prostho: "/specialties/prosthodontics",
-  pediatric: "/specialties/pediatric",
-  oralSurgery: "/specialties/oral-surgery",
-  implants: "/specialties/implants",
-  radiology: "/specialties/radiology",
-};
-
-type SpecialtyButtonProps = {
-  id: SpecialtyId;
-  label: string;
-  active: boolean;
-  href?: string;
-  onSelect: (id: SpecialtyId) => void;
-};
-
-function SpecialtyButton({
-  id,
-  label,
-  active,
-  href,
-  onSelect,
-}: SpecialtyButtonProps) {
-  const baseClasses =
-    "w-full rounded-xl border px-6 py-3 text-sm md:text-[15px] flex items-center justify-center transition-all";
-  const activeClasses =
-    "border-sky-400/80 bg-sky-500/10 shadow-[0_0_30px_rgba(56,189,248,0.45)] text-sky-100";
-  const inactiveClasses =
-    "border-slate-700/80 bg-slate-900/60 text-slate-200 hover:border-sky-500/50 hover:text-sky-100";
-
-  const content = (
-    <button
-      type="button"
-      onClick={() => onSelect(id)}
-      className={`${baseClasses} ${active ? activeClasses : inactiveClasses}`}
-    >
-      <span className="font-medium tracking-[0.03em]">{label}</span>
-    </button>
-  );
-
-  if (href) {
+function StatusPill({ status }: { status: WorkspaceStatus }) {
+  if (status === "live") {
     return (
-      <Link href={href} scroll={false} className="w-full">
-        {content}
-      </Link>
+      <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+        Live
+      </span>
     );
   }
-
-  return content;
+  if (status === "beta") {
+    return (
+      <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">
+        Beta
+      </span>
+    );
+  }
+  return (
+    <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200">
+      Coming soon
+    </span>
+  );
 }
 
-export default function SpecialtiesPage() {
-  const [selected, setSelected] = useState<SpecialtyId>("general");
-
+export default function SpecialtiesUniversePage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-6xl px-4 pb-24 pt-10">
-        {/* Header */}
-        <header className="mb-10 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-teal-400">
-              Specialties · Layer 2
-            </p>
-            <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
-              Specialties Universe
-            </h1>
-            <p className="mt-2 max-w-xl text-xs md:text-sm text-slate-400">
-              Touch (or click) a specialty to enter its deep layer. Each node
-              will be a full module with forms, protocols and a specialty-
-              specific dental chart.
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* TOP BAR: title + quick navigation */}
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-sky-400">
+            Specialties · Layers 2 &amp; 3
+          </p>
+          <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
+            Specialties Universe
+          </h1>
+          <p className="mt-2 max-w-2xl text-xs md:text-sm text-slate-400">
+            Navigate every clinical specialty in ADIE. Each tile opens a
+            dedicated workspace that later will sync with the global dental
+            chart, radiology, BI and operations.
+          </p>
+        </div>
 
+        <div className="flex flex-wrap gap-2 justify-start sm:justify-end">
           <Link
-            href="/"
-            className="rounded-full border border-slate-700 bg-slate-900/70 px-4 py-1.5 text-xs md:text-sm text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors"
+            href="/dashboard"
+            className="rounded-full border border-slate-700 bg-slate-900/70 px-4 py-1.5 text-xs text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors"
           >
             ← Back to Dashboard
           </Link>
-        </header>
+        </div>
+      </header>
 
-        {/* Universe card */}
-        <section className="mx-auto max-w-4xl rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-950/90 to-slate-950/60 px-6 py-8 md:px-10 md:py-10 shadow-[0_40px_120px_rgba(15,23,42,0.9)]">
-          <div className="grid gap-8 md:grid-cols-[1.2fr_auto_1.2fr] items-center">
-            {/* Left column */}
-            <div className="space-y-4">
-              <SpecialtyButton
-                id="preventive"
-                label={SPECIALTY_LABEL.preventive}
-                active={selected === "preventive"}
-                onSelect={setSelected}
-              />
-              <SpecialtyButton
-                id="implants"
-                label={SPECIALTY_LABEL.implants}
-                active={selected === "implants"}
-                href={SPECIALTY_ROUTE.implants}
-                onSelect={setSelected}
-              />
-              <SpecialtyButton
-                id="perio"
-                label={SPECIALTY_LABEL.perio}
-                active={selected === "perio"}
-                href={SPECIALTY_ROUTE.perio}
-                onSelect={setSelected}
-              />
-            </div>
+      {/* LAYERS SUMMARY */}
+      <section className="grid gap-3 md:grid-cols-3 text-[11px]">
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
+          <p className="font-semibold text-slate-200 mb-1">
+            Layer 1 · EMR
+          </p>
+          <p className="text-slate-400">
+            Patient registry, risk flags and clinical history coming from
+            Patients.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
+          <p className="font-semibold text-slate-200 mb-1">
+            Layer 2 · Universe
+          </p>
+          <p className="text-slate-400">
+            This screen: navigate specialties and understand how they link
+            with implants, perio, BI and operations.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
+          <p className="font-semibold text-slate-200 mb-1">
+            Layer 3 · Workspaces
+          </p>
+          <p className="text-slate-400">
+            Deep clinical modules for each specialty. Data will flow to Daily
+            BI and financial analytics.
+          </p>
+        </div>
+      </section>
 
-            {/* Core node */}
-            <div className="flex flex-col items-center justify-center">
-              <div className="relative flex items-center justify-center">
-                <div className="absolute -inset-10 rounded-full bg-sky-500/25 blur-3xl" />
-                <div className="relative rounded-3xl border border-sky-400/70 bg-sky-500/10 px-8 py-8 md:px-10 md:py-10 shadow-[0_0_55px_rgba(56,189,248,0.75)]">
-                  <p className="text-[11px] uppercase tracking-[0.3em] text-sky-200/80 text-center mb-1">
-                    Core Node
-                  </p>
-                  <h2 className="text-xl md:text-2xl font-semibold text-slate-50 text-center">
-                    {SPECIALTY_LABEL.general}
-                  </h2>
-                  <p className="mt-2 text-[11px] text-sky-100/80 text-center max-w-xs">
-                    {SPECIALTY_DESCRIPTION.general}
-                  </p>
-
-                  <div className="mt-5">
-                    <SpecialtyButton
-                      id="general"
-                      label={SPECIALTY_LABEL.general}
-                      active={selected === "general"}
-                      href={SPECIALTY_ROUTE.general}
-                      onSelect={setSelected}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom row under core */}
-              <div className="mt-6 flex w-full flex-col gap-4 md:flex-row">
-                <SpecialtyButton
-                  id="oralSurgery"
-                  label={SPECIALTY_LABEL.oralSurgery}
-                  active={selected === "oralSurgery"}
-                  href={SPECIALTY_ROUTE.oralSurgery}
-                  onSelect={setSelected}
-                />
-                <SpecialtyButton
-                  id="ortho"
-                  label={SPECIALTY_LABEL.ortho}
-                  active={selected === "ortho"}
-                  href={SPECIALTY_ROUTE.ortho}
-                  onSelect={setSelected}
-                />
-              </div>
-            </div>
-
-            {/* Right column */}
-            <div className="space-y-4">
-              <SpecialtyButton
-                id="radiology"
-                label={SPECIALTY_LABEL.radiology}
-                active={selected === "radiology"}
-                href={SPECIALTY_ROUTE.radiology}
-                onSelect={setSelected}
-              />
-              <SpecialtyButton
-                id="pediatric"
-                label={SPECIALTY_LABEL.pediatric}
-                active={selected === "pediatric"}
-                href={SPECIALTY_ROUTE.pediatric}
-                onSelect={setSelected}
-              />
-              <SpecialtyButton
-                id="prostho"
-                label={SPECIALTY_LABEL.prostho}
-                active={selected === "prostho"}
-                href={SPECIALTY_ROUTE.prostho}
-                onSelect={setSelected}
-              />
-            </div>
+      {/* CLINICAL WORKSPACES GRID */}
+      <section className="rounded-3xl border border-slate-800 bg-slate-950/80 px-4 py-4 md:px-5 md:py-5">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
+              Clinical workspaces
+            </p>
+            <p className="text-[11px] text-slate-500 mt-1">
+              Click any tile to open the layer 3 workspace for that
+              specialty. Later these will sync with the unified dental chart.
+            </p>
           </div>
-
-          {/* Selected description */}
-          <div className="mt-8 border-t border-slate-800 pt-4 text-xs md:text-sm text-slate-400">
-            <span className="text-slate-500">Selected specialty: </span>
-            <span className="font-semibold text-sky-200">
-              {SPECIALTY_LABEL[selected]}
+          <div className="flex items-center gap-2 text-[10px]">
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-[2px] text-emerald-200 border border-emerald-500/40">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Live
             </span>
-            <span className="text-slate-500"> · </span>
-            <span>{SPECIALTY_DESCRIPTION[selected]}</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-[2px] text-sky-200 border border-sky-500/40">
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+              Beta
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-[2px] text-amber-100 border border-amber-500/40">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+              Coming
+            </span>
           </div>
-        </section>
-      </div>
-    </main>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {clinicalWorkspaces.map((ws) => (
+            <article
+              key={ws.name}
+              className="group rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3.5 hover:border-sky-500/50 hover:bg-slate-900/80 transition-colors"
+            >
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-50">
+                    {ws.name}
+                  </h2>
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    {ws.description}
+                  </p>
+                </div>
+                <StatusPill status={ws.status} />
+              </div>
+
+              <div className="mt-2 flex items-center justify-between text-[11px]">
+                <span className="text-slate-500">{ws.layerLabel}</span>
+                <Link
+                  href={ws.href}
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-700 px-3 py-1 text-[11px] text-sky-200 group-hover:border-sky-500 group-hover:text-sky-100"
+                >
+                  Open workspace
+                  <span className="text-[10px]">↗</span>
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* INTEGRATION ROADMAP */}
+      <section className="rounded-3xl border border-slate-800 bg-slate-950/80 px-4 py-4 md:px-5 md:py-4 text-[11px] text-slate-300">
+        <p className="font-semibold mb-1.5">Integration roadmap</p>
+        <ul className="space-y-1 text-slate-400">
+          <li>
+            • Short term: connect Perio, Endo, Implants and Radiology to the
+            ADIE database and BI dashboards.
+          </li>
+          <li>
+            • Mid term: unify all specialty timelines into a single Global
+            Dental Chart view for each patient.
+          </li>
+          <li>
+            • Long term: open the ADIE Ecosystem for inter-consultation and
+            referrals between clinics.
+          </li>
+        </ul>
+      </section>
+    </div>
   );
 }

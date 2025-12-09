@@ -1,100 +1,70 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
-// ----------------- Configuración básica -----------------
-
-const UPPER_TEETH = [
-  "18",
-  "17",
-  "16",
-  "15",
-  "14",
-  "13",
-  "12",
-  "11",
-  "21",
-  "22",
-  "23",
-  "24",
-  "25",
-  "26",
-  "27",
-  "28",
-];
-
-const LOWER_TEETH = [
-  "48",
-  "47",
-  "46",
-  "45",
-  "44",
-  "43",
-  "42",
-  "41",
-  "31",
-  "32",
-  "33",
-  "34",
-  "35",
-  "36",
-  "37",
-  "38",
-];
-
-const SITES = [
-  { id: "mb", label: "MB" },
-  { id: "b", label: "B" },
-  { id: "db", label: "DB" },
-  { id: "ml", label: "ML" },
-  { id: "l", label: "L" },
-  { id: "dl", label: "DL" },
-] as const;
-
-type Severity = "none" | "mild" | "moderate" | "severe";
-
-function getSeverity(mm: number): Severity {
-  if (mm === 0) return "none";
-  if (mm <= 3) return "mild";
-  if (mm <= 5) return "moderate";
-  return "severe";
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-emerald-500/60 focus:border-emerald-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
+    />
+  );
 }
 
-const SEVERITY_LABEL: Record<Severity, string> = {
-  none: "–",
-  mild: "Mild",
-  moderate: "Moderate",
-  severe: "Severe",
-};
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      {...props}
+      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-emerald-500/60 focus:border-emerald-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
+    >
+      {props.children}
+    </select>
+  );
+}
 
-const SEVERITY_CLASS: Record<Severity, string> = {
-  none: "border-slate-700 bg-slate-950/70 text-slate-200",
-  mild: "border-emerald-500/50 bg-emerald-950/40 text-emerald-100",
-  moderate: "border-amber-500/60 bg-amber-950/40 text-amber-100",
-  severe: "border-rose-500/70 bg-rose-950/40 text-rose-100",
-};
+function TextArea({
+  rows = 3,
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      {...props}
+      rows={rows}
+      className={`w-full resize-none rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-emerald-500/60 focus:border-emerald-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
+    />
+  );
+}
 
-// ----------------- Componentes de UI simples -----------------
-
-type CardProps = {
+function Card(props: {
   title: string;
   subtitle?: string;
+  badge?: string;
   children: React.ReactNode;
-  className?: string;
-};
-
-function Card({ title, subtitle, children, className }: CardProps) {
+}) {
+  const { title, subtitle, badge, children } = props;
   return (
-    <section
-      className={`rounded-3xl border border-slate-800/70 bg-slate-950/70 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.65)] ${className ?? ""}`}
-    >
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="text-[13px] font-semibold tracking-[0.28em] text-emerald-300 uppercase">
-          {title}
-        </h2>
-        {subtitle && (
-          <p className="text-[11px] text-slate-400 text-right">{subtitle}</p>
+    <section className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-4 md:px-5 md:py-5 shadow-[0_22px_80px_rgba(15,23,42,0.95)]">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-200">
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="mt-1 text-[11px] text-slate-500">{subtitle}</p>
+          )}
+        </div>
+        {badge && (
+          <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-emerald-200">
+            {badge}
+          </span>
         )}
       </div>
       {children}
@@ -102,381 +72,922 @@ function Card({ title, subtitle, children, className }: CardProps) {
   );
 }
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
-};
+type RiskLevel = "low" | "moderate" | "high";
 
-function TextInput({ label, ...rest }: InputProps) {
-  return (
-    <label className="flex flex-col gap-1 text-[11px] text-slate-300">
-      {label && <span className="text-[11px] text-slate-400">{label}</span>}
-      <input
-        {...rest}
-        className="h-9 rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 text-[11px] text-slate-100 outline-none ring-emerald-500/40 focus:border-emerald-400/80 focus:ring-2"
-      />
-    </label>
-  );
-}
-
-type TextAreaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
-  label?: string;
-};
-
-function TextArea({ label, ...rest }: TextAreaProps) {
-  return (
-    <label className="flex flex-col gap-1 text-[11px] text-slate-300">
-      {label && <span className="text-[11px] text-slate-400">{label}</span>}
-      <textarea
-        {...rest}
-        className="min-h-[70px] rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-100 outline-none ring-emerald-500/40 focus:border-emerald-400/80 focus:ring-2"
-      />
-    </label>
-  );
-}
-
-type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
-  label?: string;
-};
-
-function Select({ label, children, ...rest }: SelectProps) {
-  return (
-    <label className="flex flex-col gap-1 text-[11px] text-slate-300">
-      {label && <span className="text-[11px] text-slate-400">{label}</span>}
-      <select
-        {...rest}
-        className="h-9 rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 text-[11px] text-slate-100 outline-none ring-emerald-500/40 focus:border-emerald-400/80 focus:ring-2"
-      >
-        {children}
-      </select>
-    </label>
-  );
-}
-
-type ToggleRowProps = {
-  label: string;
-  description?: string;
-};
-
-function ToggleRow({ label, description }: ToggleRowProps) {
-  const [on, setOn] = React.useState(false);
-  return (
-    <button
-      type="button"
-      onClick={() => setOn((v) => !v)}
-      className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left text-[11px] transition ${
-        on
-          ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-100"
-          : "border-slate-800/80 bg-slate-950/60 text-slate-200 hover:border-slate-700"
-      }`}
-    >
-      <span className="flex flex-col">
-        <span className="font-medium">{label}</span>
-        {description && (
-          <span className="text-[10px] text-slate-400">{description}</span>
-        )}
-      </span>
-      <span
-        className={`flex h-4 w-7 items-center rounded-full border transition ${
-          on
-            ? "border-emerald-400 bg-emerald-500/60"
-            : "border-slate-500 bg-slate-700/60"
-        }`}
-      >
-        <span
-          className={`h-3 w-3 rounded-full bg-slate-950 transition ${
-            on ? "translate-x-3" : "translate-x-0.5"
-          }`}
-        />
-      </span>
-    </button>
-  );
-}
-
-// ----------------- Pocket depth chart -----------------
-
-function PeriodontalPocketChart() {
-  const [values, setValues] = React.useState<Record<string, number>>({});
-
-  function changeValue(key: string, delta: number) {
-    setValues((prev) => {
-      const current = prev[key] ?? 0;
-      let next = current + delta;
-      if (next < 0) next = 0;
-      if (next > 10) next = 10;
-      return { ...prev, [key]: next };
-    });
+function riskDotClasses(risk: RiskLevel) {
+  switch (risk) {
+    case "low":
+      return "bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.7)]";
+    case "moderate":
+      return "bg-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.7)]";
+    case "high":
+      return "bg-rose-500 shadow-[0_0_18px_rgba(244,63,94,0.8)]";
+    default:
+      return "bg-slate-500";
   }
-
-  function renderTable(label: string, teeth: string[]) {
-    return (
-      <div className="w-full">
-        <p className="mb-2 text-[12px] font-semibold tracking-[0.22em] text-emerald-300 uppercase">
-          {label}
-        </p>
-        <div className="overflow-x-auto rounded-2xl border border-slate-800/80 bg-slate-950/70 p-2">
-          <table className="min-w-full border-collapse text-[11px]">
-            <thead>
-              <tr className="text-slate-400">
-                <th className="px-2 py-1 text-left text-[11px]">Tooth</th>
-                {SITES.map((site) => (
-                  <th key={site.id} className="px-1 py-1 text-center">
-                    {site.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {teeth.map((tooth) => (
-                <tr key={tooth} className="border-t border-slate-800/80">
-                  <td className="px-2 py-1 text-[11px] font-semibold text-slate-200">
-                    {tooth}
-                  </td>
-                  {SITES.map((site) => {
-                    const key = `${tooth}-${site.id}`;
-                    const mm = values[key] ?? 0;
-                    const sev = getSeverity(mm);
-                    const sevLabel = SEVERITY_LABEL[sev];
-
-                    return (
-                      <td key={site.id} className="px-1 py-1">
-                        <div
-                          className={`flex flex-col items-center rounded-lg border px-1.5 py-1 ${SEVERITY_CLASS[sev]}`}
-                        >
-                          <span className="text-[9px] text-slate-300">
-                            {site.label}
-                          </span>
-                          <div className="mt-0.5 flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => changeValue(key, -1)}
-                              className="h-4 w-4 rounded-full border border-slate-500 text-[11px] leading-none text-slate-200 hover:border-emerald-400 hover:text-emerald-200"
-                            >
-                              −
-                            </button>
-                            <span className="text-[11px] font-semibold">
-                              {mm}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => changeValue(key, +1)}
-                              className="h-4 w-4 rounded-full border border-slate-500 text-[11px] leading-none text-slate-200 hover:border-emerald-400 hover:text-emerald-200"
-                            >
-                              +
-                            </button>
-                          </div>
-                          <span className="mt-0.5 text-[9px] leading-tight text-slate-300">
-                            {sevLabel}
-                          </span>
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="text-[11px] text-slate-400">
-        Use the − / + buttons to set probing depth in millimetres for each site
-        (MB, B, DB, ML, L, DL). Cells change colour depending on severity:
-        green = mild (≤3&nbsp;mm), amber = moderate (4–5&nbsp;mm), red =
-        severe (≥6&nbsp;mm). Later we will link this grid to the SVG periodontal
-        chart and Postgres database.
-      </p>
-
-      <div className="space-y-6">
-        {renderTable("UPPER ARCH · MAXILLARY TEETH", UPPER_TEETH)}
-        {renderTable("LOWER ARCH · MANDIBULAR TEETH", LOWER_TEETH)}
-      </div>
-    </div>
-  );
 }
 
-// ----------------- Página principal -----------------
+type ToothData = {
+  id: string;
+  pocket: number; // mm
+  boneLoss: number; // %
+};
 
-export default function PeriodonticsRecordPage() {
+function getPocketRisk(pocket: number): RiskLevel {
+  if (pocket <= 3) return "low";
+  if (pocket <= 5) return "moderate";
+  return "high";
+}
+
+const initialUpperTeeth: ToothData[] = [
+  { id: "18", pocket: 3, boneLoss: 10 },
+  { id: "17", pocket: 3, boneLoss: 12 },
+  { id: "16", pocket: 4, boneLoss: 18 },
+  { id: "15", pocket: 4, boneLoss: 22 },
+  { id: "14", pocket: 6, boneLoss: 40 },
+  { id: "13", pocket: 6, boneLoss: 45 },
+  { id: "12", pocket: 4, boneLoss: 28 },
+  { id: "11", pocket: 4, boneLoss: 30 },
+  { id: "21", pocket: 6, boneLoss: 42 },
+  { id: "22", pocket: 6, boneLoss: 40 },
+  { id: "23", pocket: 4, boneLoss: 26 },
+  { id: "24", pocket: 4, boneLoss: 24 },
+  { id: "25", pocket: 3, boneLoss: 18 },
+  { id: "26", pocket: 3, boneLoss: 14 },
+  { id: "27", pocket: 3, boneLoss: 12 },
+  { id: "28", pocket: 3, boneLoss: 10 },
+];
+
+const initialLowerTeeth: ToothData[] = [
+  { id: "48", pocket: 3, boneLoss: 10 },
+  { id: "47", pocket: 3, boneLoss: 12 },
+  { id: "46", pocket: 3, boneLoss: 14 },
+  { id: "45", pocket: 4, boneLoss: 22 },
+  { id: "44", pocket: 6, boneLoss: 40 },
+  { id: "43", pocket: 6, boneLoss: 42 },
+  { id: "42", pocket: 4, boneLoss: 26 },
+  { id: "41", pocket: 4, boneLoss: 24 },
+  { id: "31", pocket: 4, boneLoss: 24 },
+  { id: "32", pocket: 4, boneLoss: 26 },
+  { id: "33", pocket: 6, boneLoss: 42 },
+  { id: "34", pocket: 6, boneLoss: 40 },
+  { id: "35", pocket: 4, boneLoss: 22 },
+  { id: "36", pocket: 3, boneLoss: 16 },
+  { id: "37", pocket: 3, boneLoss: 14 },
+  { id: "38", pocket: 3, boneLoss: 12 },
+];
+
+const surgicalRows = [
+  { id: 1, label: "UR – 14/15 site" },
+  { id: 2, label: "UL – 24/25 site" },
+  { id: 3, label: "LL – 33/34 site" },
+];
+
+export default function PerioLayerPage() {
+  const [upperTeeth, setUpperTeeth] = useState<ToothData[]>(initialUpperTeeth);
+  const [lowerTeeth, setLowerTeeth] = useState<ToothData[]>(initialLowerTeeth);
+
+  const updateTooth = (
+    arch: "upper" | "lower",
+    index: number,
+    field: "pocket" | "boneLoss",
+    delta: number
+  ) => {
+    if (arch === "upper") {
+      setUpperTeeth((prev) => {
+        const next = [...prev];
+        const value = next[index][field] + delta;
+        if (field === "pocket") {
+          next[index][field] = Math.min(12, Math.max(0, value));
+        } else {
+          next[index][field] = Math.min(100, Math.max(0, value));
+        }
+        return next;
+      });
+    } else {
+      setLowerTeeth((prev) => {
+        const next = [...prev];
+        const value = next[index][field] + delta;
+        if (field === "pocket") {
+          next[index][field] = Math.min(12, Math.max(0, value));
+        } else {
+          next[index][field] = Math.min(100, Math.max(0, value));
+        }
+        return next;
+      });
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-8 text-slate-100">
-      {/* Encabezado */}
-      <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 pb-6">
-        <div>
-          <p className="text-[11px] font-semibold tracking-[0.32em] text-emerald-300 uppercase">
-            Specialties · Layer 3
-          </p>
-          <h1 className="mt-1 text-xl font-semibold text-slate-50">
-            Periodontics Clinical Record
-          </h1>
-          <p className="mt-1 text-[11px] text-slate-400 max-w-xl">
-            Complete periodontal chart to document pockets, diagnosis, risk
-            factors, non-surgical and surgical treatment and long-term
-            maintenance.
-          </p>
-        </div>
+    <main className="min-h-screen bg-slate-950 text-slate-50">
+      <div className="mx-auto max-w-6xl px-4 pb-24 pt-8">
+        {/* HEADER TÍTULO + BOTONES */}
+        <header className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-emerald-400">
+              Specialties · Periodontics
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-50 md:text-3xl">
+              Periodontal Intelligence · Bone, Pockets & Regeneration
+            </h1>
+            <p className="mt-1 max-w-2xl text-xs text-slate-400 md:text-sm">
+              Advanced perio cockpit for ADIE: staging, pockets, bone, implants
+              and maintenance orchestrated in one AI-ready workspace, fully
+              connected to ADIE&apos;s global dental chart.
+            </p>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/specialties"
-            className="rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 text-[11px] font-medium text-slate-200 shadow hover:border-emerald-400 hover:text-emerald-200"
-          >
-            ← Back to Specialties Universe
-          </Link>
-        </div>
-      </header>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-[11px] text-slate-200 hover:border-emerald-400 hover:text-emerald-100 transition-colors">
+              View full EMR
+            </button>
+            <button className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-[11px] text-slate-200 hover:border-sky-400 hover:text-sky-100 transition-colors">
+              Perio timeline
+            </button>
+            <Link
+              href="/specialties"
+              className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-[11px] text-slate-300 hover:border-slate-400 hover:text-slate-50 transition-colors"
+            >
+              ← Back to Specialties Universe
+            </Link>
+          </div>
+        </header>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 pb-10">
-        {/* Contexto del paciente */}
-        <Card
-          title="Patient Context"
-          subtitle="Link this record to the EMR patient list. Later we will connect EMR ID, age and treatment status."
-        >
-          <div className="grid gap-4 md:grid-cols-[minmax(0,2.2fr),minmax(0,3fr)]">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <TextInput
-                label="Name"
-                placeholder="[Select patient from EMR]"
-                defaultValue=""
-              />
-              <TextInput label="ID" placeholder="ADIE-PERIO-0001" />
-              <TextInput label="Age" placeholder="—" />
-              <TextInput label="Status" defaultValue="Active treatment" />
-            </div>
-            <div className="flex flex-col justify-between gap-2 text-[11px] text-slate-400">
-              <p>
-                This header will later display alerts from the medical record
-                (systemic risks, allergies, medications) and a quick summary of
-                previous periodontal treatments.
+        {/* BARRA ESTÁNDAR: BACK TO MPR + SAVE & DASHBOARD */}
+        <SpecialtyTopActions specialtyLabel="Periodontics & Regeneration" />
+
+        {/* HEADER CLÍNICO COMPARTIDO */}
+        <section className="mb-4 rounded-3xl border border-slate-800 bg-slate-950/80 px-5 py-3 shadow-[0_24px_80px_rgba(15,23,42,0.95)]">
+          <div className="grid gap-4 md:grid-cols-[0.9fr,2fr,1.2fr] md:items-center">
+            {/* Foto / upload */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+                Patient photo
               </p>
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/80 text-[11px] text-slate-500">
+                Photo
+              </div>
+              <button className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[11px] text-slate-200 hover:border-emerald-400 hover:text-emerald-100 transition-colors">
+                ⬆ Upload
+              </button>
+            </div>
+
+            {/* Datos paciente + flags rápidos */}
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+                <span className="rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                  Active periodontal patient
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-slate-50">
+                <span>John / Jane Doe</span>
+                <span className="text-slate-500">·</span>
+                <span className="text-[11px] text-slate-300">
+                  ID ADIE-PT-0001
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
+                <span>DOB: 1986-03-12</span>
+                <span>· Age: 39y</span>
+                <span>· Gender: Female</span>
+                <span>· National ID / passport: 1-0000-0000</span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold uppercase tracking-[0.18em] text-emerald-200">
+                  VIP
+                </span>
+                <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-200">
+                  Financial hold · Review balance
+                </span>
+                <span className="rounded-full bg-slate-900 px-2 py-0.5 text-slate-300">
+                  Perio Stage III · Grade C
+                </span>
+              </div>
+
+              <div className="grid gap-2 text-[10px] text-slate-400 md:grid-cols-2">
+                <div>
+                  <p className="mb-0.5 font-medium text-slate-300">
+                    Systemic & medical flags
+                  </p>
+                  <p className="leading-snug">
+                    Diabetes type II · HbA1c 7.4 · Hypertension · Medications:
+                    Metformin, ACE inhibitor.
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-0.5 font-medium text-slate-300">
+                    Perio & dental quick flags
+                  </p>
+                  <p className="leading-snug">
+                    Generalized Stage III · multiple 6–8 mm pockets · mobility
+                    grade II molars · prior failed implants.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Riesgo global + botón verde */}
+            <div className="flex flex-col items-end gap-2.5">
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end text-right">
+                  <span className="text-[10px] uppercase tracking-[0.24em] text-slate-400">
+                    Global perio risk
+                  </span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className="relative h-9 w-9">
+                      <div className="absolute left-1/2 top-0 -translate-x-1/2 border-l-[9px] border-r-[9px] border-b-[16px] border-l-transparent border-r-transparent border-b-emerald-400/80" />
+                      <div className="absolute left-1/2 top-[5px] -translate-x-1/2 border-l-[9px] border-r-[9px] border-b-[16px] border-l-transparent border-r-transparent border-b-amber-400/90" />
+                      <div className="absolute left-1/2 top-[10px] -translate-x-1/2 border-l-[9px] border-r-[9px] border-b-[16px] border-l-transparent border-r-transparent border-b-rose-500/90" />
+                    </div>
+                    <div className="flex flex-col text-[10px] text-slate-300">
+                      <span>AI Perio Score: 78/100</span>
+                      <span className="text-amber-300">
+                        High risk · Tight maintenance
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button className="rounded-full border border-emerald-500/70 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/20 transition-colors">
+                Cleared for perio surgery · No critical alerts
+              </button>
+
+              <div className="flex flex-col items-end text-[10px] text-slate-400">
+                <span>Caries risk: low · Ortho: not active</span>
+                <span>Medical alerts: already reviewed today</span>
+              </div>
             </div>
           </div>
-        </Card>
+        </section>
 
-        {/* Fila principal: Historia / Pocket records */}
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr),minmax(0,2.2fr)]">
-          <Card title="Chief Complaint & History">
-            <div className="grid gap-4">
-              <TextArea
-                label="Chief complaint"
-                placeholder="Example: Bleeding gums, bad breath and tooth mobility when chewing."
-              />
-              <TextArea
-                label="Medical / dental history"
-                placeholder="Systemic diseases (diabetes, cardiovascular), medications, smoking, previous periodontal treatment, oral hygiene habits..."
-              />
-            </div>
-          </Card>
+        {/* LAYOUT PRINCIPAL */}
+        <div className="grid gap-5 lg:grid-cols-[1.7fr,1.2fr]">
+          {/* COLUMNA IZQUIERDA */}
+          <div className="space-y-5">
+            {/* TRIAGE PERIO */}
+            <Card
+              title="Perio Triage & Global Risk Matrix"
+              subtitle="Diagnóstico de base, factores sistémicos, hábitos y fenotipo periodontitis."
+              badge="Triage"
+            >
+              <div className="grid gap-3 text-[11px] md:grid-cols-4">
+                <div className="md:col-span-2">
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Link to ADIE EMR patient
+                  </label>
+                  <button className="w-full rounded-full border border-emerald-500/70 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/20 transition">
+                    Select patient from EMR
+                  </button>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Perio case ID
+                  </label>
+                  <Input placeholder="ADIE-PERIO-0012" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Perio phenotype
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Localized</option>
+                    <option>Generalized</option>
+                    <option>Molar-incisor pattern</option>
+                  </Select>
+                </div>
+              </div>
 
-          <Card
-            title="Periodontal Records & Pocket Chart"
-            subtitle="Later we will link each item with Radiology, Photos and the SVG periodontal chart."
-          >
-            <div className="space-y-2">
-              <ToggleRow label="Full mouth pocket chart recorded" />
-              <ToggleRow label="Mobility and furcation chart completed" />
-              <ToggleRow label="Radiographic bone loss evaluated" />
-              <ToggleRow label="Plaque index / bleeding index recorded" />
-              <ToggleRow label="Implant sites charted" />
-            </div>
-          </Card>
+              <div className="mt-4 grid gap-3 text-[11px] md:grid-cols-5">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Stage
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Stage I</option>
+                    <option>Stage II</option>
+                    <option>Stage III</option>
+                    <option>Stage IV</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Grade
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Grade A (slow)</option>
+                    <option>Grade B (moderate)</option>
+                    <option>Grade C (rapid)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    BOP %
+                  </label>
+                  <Input placeholder="e.g. 52%" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Plaque %
+                  </label>
+                  <Input placeholder="e.g. 68%" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Furcation involvement
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>No furcation</option>
+                    <option>Class I</option>
+                    <option>Class II</option>
+                    <option>Class III</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 text-[11px] md:grid-cols-4">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Smoking / habits
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Non-smoker</option>
+                    <option>Former smoker</option>
+                    <option>Smoker (&lt;10 cig/day)</option>
+                    <option>Smoker (&gt;10 cig/day)</option>
+                    <option>Vaping / other</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Diabetes status
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>No diabetes</option>
+                    <option>Pre-diabetes</option>
+                    <option>Diabetes (controlled)</option>
+                    <option>Diabetes (uncontrolled)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Cardiovascular disease
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>No CVD</option>
+                    <option>CVD under control</option>
+                    <option>Recent event (&lt;6m)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Systemic notes
+                  </label>
+                  <Input placeholder="Physician, medications, INR, etc." />
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/80 px-3 py-3 text-[11px]">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-slate-400">
+                    AI Perio risk engine (future):
+                  </span>
+                  <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-rose-200">
+                    5-year tooth loss risk: 32%
+                  </span>
+                  <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-200">
+                    Systemic inflammation risk: elevated
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-500">
+                  Will auto-update from pockets, bone, habits & systemic data.
+                </span>
+              </div>
+            </Card>
+
+            {/* GLOBAL POCKET & BONE MAP FUNCIONAL */}
+            <Card
+              title="Global Pocket & Bone Map"
+              subtitle="Arcada superior e inferior con controles interactivos para bolsas y pérdida ósea."
+              badge="3D Perio Map"
+            >
+              <p className="mb-2 text-[11px] text-slate-400">
+                Cada diente muestra su riesgo periodontal actual. Usa los
+                botones − / + para simular las mediciones clínicas; el color se
+                ajusta automáticamente según la profundidad de bolsa. En el
+                futuro, estos valores vendrán del odontograma SVG y de la
+                radiología.
+              </p>
+
+              <div className="mb-4 flex flex-wrap items-center gap-3 text-[10px]">
+                <div className="flex items-center gap-1">
+                  <span className={`h-2 w-2 rounded-full ${riskDotClasses("low")}`} />
+                  <span className="text-slate-400">0–3 mm · Healthy / maintenance</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span
+                    className={`h-2 w-2 rounded-full ${riskDotClasses("moderate")}`}
+                  />
+                  <span className="text-slate-400">
+                    4–5 mm · Moderate · SRP / local therapy
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className={`h-2 w-2 rounded-full ${riskDotClasses("high")}`} />
+                  <span className="text-slate-400">
+                    ≥6 mm · Critical · Surgical / regenerative
+                  </span>
+                </div>
+              </div>
+
+              {/* Arcada superior */}
+              <div className="mb-4 rounded-2xl border border-slate-800 bg-slate-950/80 px-3 py-3">
+                <div className="mb-2 flex items-center justify-between text-[11px]">
+                  <span className="font-medium text-slate-200">
+                    Upper Arch · 18 → 28
+                  </span>
+                  <span className="text-slate-500">
+                    Max pocket: 7–8 mm · Bone loss: 45%
+                  </span>
+                </div>
+                <div className="grid grid-cols-8 gap-2">
+                  {upperTeeth.map((tooth, index) => {
+                    const risk = getPocketRisk(tooth.pocket);
+                    return (
+                      <div
+                        key={tooth.id}
+                        className="group flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/70 px-1.5 py-1.5 text-[10px] hover:border-emerald-400/70 hover:bg-slate-900 transition"
+                      >
+                        <span
+                          className={`mb-1 h-2 w-2 rounded-full ${riskDotClasses(
+                            risk
+                          )}`}
+                        />
+                        <span className="font-semibold text-slate-100">
+                          {tooth.id}
+                        </span>
+
+                        <div className="mt-1 flex items-center gap-1 text-[9px] text-slate-300">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTooth("upper", index, "pocket", -1)
+                            }
+                            className="h-4 w-4 rounded-full border border-slate-700 text-[9px] leading-none hover:border-emerald-400"
+                          >
+                            −
+                          </button>
+                          <span>Pocket {tooth.pocket} mm</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTooth("upper", index, "pocket", 1)
+                            }
+                            className="h-4 w-4 rounded-full border border-slate-700 text-[9px] leading-none hover:border-emerald-400"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <div className="mt-1 flex items-center gap-1 text-[9px] text-slate-400">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTooth("upper", index, "boneLoss", -5)
+                            }
+                            className="h-4 w-4 rounded-full border border-slate-700 text-[9px] leading-none hover:border-emerald-400"
+                          >
+                            −
+                          </button>
+                          <span>Bone {tooth.boneLoss}%</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTooth("upper", index, "boneLoss", 5)
+                            }
+                            className="h-4 w-4 rounded-full border border-slate-700 text-[9px] leading-none hover:border-emerald-400"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <span className="mt-1 text-[9px] text-slate-500 group-hover:text-emerald-200">
+                          Open perio chart
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Arcada inferior */}
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-3 py-3">
+                <div className="mb-2 flex items-center justify-between text-[11px]">
+                  <span className="font-medium text-slate-200">
+                    Lower Arch · 48 → 38
+                  </span>
+                  <span className="text-slate-500">
+                    Max pocket: 8–9 mm · Bone loss: 52%
+                  </span>
+                </div>
+                <div className="grid grid-cols-8 gap-2">
+                  {lowerTeeth.map((tooth, index) => {
+                    const risk = getPocketRisk(tooth.pocket);
+                    return (
+                      <div
+                        key={tooth.id}
+                        className="group flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/70 px-1.5 py-1.5 text-[10px] hover:border-emerald-400/70 hover:bg-slate-900 transition"
+                      >
+                        <span
+                          className={`mb-1 h-2 w-2 rounded-full ${riskDotClasses(
+                            risk
+                          )}`}
+                        />
+                        <span className="font-semibold text-slate-100">
+                          {tooth.id}
+                        </span>
+
+                        <div className="mt-1 flex items-center gap-1 text-[9px] text-slate-300">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTooth("lower", index, "pocket", -1)
+                            }
+                            className="h-4 w-4 rounded-full border border-slate-700 text-[9px] leading-none hover:border-emerald-400"
+                          >
+                            −
+                          </button>
+                          <span>Pocket {tooth.pocket} mm</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTooth("lower", index, "pocket", 1)
+                            }
+                            className="h-4 w-4 rounded-full border border-slate-700 text-[9px] leading-none hover:border-emerald-400"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <div className="mt-1 flex items-center gap-1 text-[9px] text-slate-400">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTooth("lower", index, "boneLoss", -5)
+                            }
+                            className="h-4 w-4 rounded-full border border-slate-700 text-[9px] leading-none hover:border-emerald-400"
+                          >
+                            −
+                          </button>
+                          <span>Bone {tooth.boneLoss}%</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateTooth("lower", index, "boneLoss", 5)
+                            }
+                            className="h-4 w-4 rounded-full border border-slate-700 text-[9px] leading-none hover:border-emerald-400"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <span className="mt-1 text-[9px] text-slate-500 group-hover:text-emerald-200">
+                          Open perio chart
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <p className="mt-3 text-[10px] text-slate-500">
+                Future: this map will be fully driven by the SVG periodontal
+                chart, radiographic bone levels and AI predictions. Clicking a
+                tooth will zoom into 6-point pocket chart + furcation + mobility.
+              </p>
+            </Card>
+
+            {/* CIRUGÍA PERIO / IMPLANTES */}
+            <Card
+              title="Implant & Regenerative Perio Surgery Board"
+              subtitle="Planeación de cirugía ósea, implantes, membranas y materiales regenerativos."
+              badge="Surgery"
+            >
+              <p className="mb-3 text-[11px] text-slate-400">
+                Este tablero conecta al periodoncista con el módulo de implantes y
+                radiología. Cada fila representa un sitio quirúrgico con todos los
+                detalles: defecto, implante, membrana, injerto y notas de torque /
+                estabilidad.
+              </p>
+
+              <div className="grid gap-2 text-[11px]">
+                {surgicalRows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="grid grid-cols-1 gap-2 rounded-2xl border border-slate-800 bg-slate-950/90 px-3 py-3 md:grid-cols-[1.2fr,1.4fr,1.4fr]"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
+                          Site {row.id}
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          {row.label}
+                        </span>
+                      </div>
+                      <div>
+                        <label className="mb-1 block font-medium text-slate-300">
+                          Defect type
+                        </label>
+                        <Select defaultValue="">
+                          <option value="">Select…</option>
+                          <option>Infrabony 1-wall</option>
+                          <option>Infrabony 2-wall</option>
+                          <option>Infrabony 3-wall</option>
+                          <option>Furcation Class II</option>
+                          <option>Peri-implantitis defect</option>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="mb-1 block font-medium text-slate-300">
+                          Link to radiology
+                        </label>
+                        <Input placeholder="CBCT slice / PA ID…" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div>
+                        <label className="mb-1 block font-medium text-slate-300">
+                          Implant brand & line
+                        </label>
+                        <Select defaultValue="">
+                          <option value="">Select…</option>
+                          <option>Nobel Biocare</option>
+                          <option>Straumann</option>
+                          <option>BioHorizons</option>
+                          <option>Zimmer Biomet</option>
+                          <option>Other / custom</option>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="mb-1 block font-medium text-slate-300">
+                            Diameter (mm)
+                          </label>
+                          <Input placeholder="4.0" />
+                        </div>
+                        <div>
+                          <label className="mb-1 block font-medium text-slate-300">
+                            Length (mm)
+                          </label>
+                          <Input placeholder="10" />
+                        </div>
+                        <div>
+                          <label className="mb-1 block font-medium text-slate-300">
+                            Torque (Ncm)
+                          </label>
+                          <Input placeholder="35" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1 block font-medium text-slate-300">
+                          Primary stability / ISQ
+                        </label>
+                        <Input placeholder="e.g. High / ISQ 78" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="mb-1 block font-medium text-slate-300">
+                            Membrane brand
+                          </label>
+                          <Select defaultValue="">
+                            <option value="">Select…</option>
+                            <option>Bio-Gide</option>
+                            <option>OsseoGuard</option>
+                            <option>Resorbable collagen</option>
+                            <option>Non-resorbable PTFE</option>
+                            <option>No membrane</option>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="mb-1 block font-medium text-slate-300">
+                            Graft material
+                          </label>
+                          <Select defaultValue="">
+                            <option value="">Select…</option>
+                            <option>Autograft</option>
+                            <option>Xenograft</option>
+                            <option>Allograft</option>
+                            <option>Alloplast</option>
+                            <option>Combination</option>
+                          </Select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1 block font-medium text-slate-300">
+                          Perio–implant coordination notes
+                        </label>
+                        <TextArea
+                          rows={3}
+                          placeholder="Flap design, papilla preservation, regenerative strategy, suturing, provisionalization…"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-3 flex items-center justify-between text-[10px] text-slate-500">
+                <span>
+                  Future: auto-sync with implant module, brand catalogs and
+                  inventory / lot tracking.
+                </span>
+                <button className="rounded-full border border-slate-700 bg-slate-900/80 px-2.5 py-1 text-[10px] text-slate-200 hover:border-emerald-400 hover:text-emerald-100 transition">
+                  + Add surgery site
+                </button>
+              </div>
+            </Card>
+          </div>
+
+          {/* COLUMNA DERECHA */}
+          <div className="space-y-5">
+            {/* MANTENIMIENTO */}
+            <Card
+              title="Perio Maintenance & Shared Care Program"
+              subtitle="Intervalos, responsables y coordinación con odontología general y otras especialidades."
+              badge="Maintenance"
+            >
+              <div className="grid gap-3 text-[11px] md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Maintenance interval
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Every 3 months</option>
+                    <option>Every 4 months</option>
+                    <option>Every 6 months</option>
+                    <option>Alternating 3 / 6 months</option>
+                    <option>Custom</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Maintenance risk level
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Low (stable)</option>
+                    <option>Moderate (monitor)</option>
+                    <option>High (tight recall)</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 text-[11px] md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Responsible provider
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Periodontist only</option>
+                    <option>Perio + General dentist</option>
+                    <option>General dentist with perio oversight</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Ortho / Prostho impact
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>No active ortho / prostho</option>
+                    <option>Active ortho · need close perio</option>
+                    <option>Complex prostho plan linked</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 text-[11px] md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Last SRP / surgery
+                  </label>
+                  <Input placeholder="2025-11-02" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Re-evaluation date
+                  </label>
+                  <Input placeholder="2026-01-15" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Next maintenance visit
+                  </label>
+                  <Input placeholder="2026-03-15" />
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/90 px-3 py-3 text-[11px]">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="font-medium text-slate-200">
+                    Compliance & reminders (future AI)
+                  </span>
+                  <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-200">
+                    Compliance: 62%
+                  </span>
+                </div>
+                <ul className="space-y-1 text-slate-400">
+                  <li>• Smart reminders via app / WhatsApp / email.</li>
+                  <li>• Alerts when patient misses 2+ visits in 12 months.</li>
+                  <li>• Automatic notes in General & Implants about perio status.</li>
+                </ul>
+              </div>
+            </Card>
+
+            {/* AI INSIGHT */}
+            <Card
+              title="Perio AI Insight Dashboard"
+              subtitle="Cockpit rápido para entender riesgo y prioridades del caso."
+              badge="AI Core"
+            >
+              <div className="grid gap-3 text-[11px] md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/90 px-3 py-3">
+                  <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">
+                    Key indicators
+                  </p>
+                  <ul className="space-y-1 text-slate-300">
+                    <li>• Teeth at surgical risk: 6</li>
+                    <li>• Teeth with ≥7 mm pockets: 4</li>
+                    <li>• Sites with BOP: 46%</li>
+                    <li>• Sites with suppuration: 7%</li>
+                  </ul>
+                </div>
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/90 px-3 py-3">
+                  <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">
+                    AI-driven suggestions (future)
+                  </p>
+                  <ul className="space-y-1 text-slate-300">
+                    <li>• Consider re-evaluation of LL molars within 6–8 weeks.</li>
+                    <li>• Link with diabetes management plan (HbA1c &gt; 7.0).</li>
+                    <li>• Prioritize plaque control coaching next visit.</li>
+                    <li>• Flag case for prostho / implant meeting.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/90 px-3 py-3 text-[11px]">
+                <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">
+                  Perio stability trend (concept)
+                </p>
+                <div className="relative mt-1 h-3 w-full overflow-hidden rounded-full bg-slate-900">
+                  <div className="absolute left-0 top-0 h-full w-1/3 bg-emerald-500/60" />
+                  <div className="absolute left-1/3 top-0 h-full w-1/3 bg-amber-500/70" />
+                  <div className="absolute left-2/3 top-0 h-full w-1/3 bg-rose-500/80" />
+                  <div className="absolute left-[58%] top-0 h-full w-[2px] bg-slate-50 shadow-[0_0_12px_rgba(248,250,252,0.9)]" />
+                </div>
+                <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+                  <span>Stable</span>
+                  <span>Borderline</span>
+                  <span>Decompensated</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* NOTAS CLÍNICAS */}
+            <Card
+              title="Perio Notes & Clinical Templates"
+              subtitle="Notas clínicas de alto nivel, educación al paciente y acuerdos interdisciplinarios."
+              badge="Notes"
+            >
+              <TextArea
+                rows={6}
+                placeholder={`Example template:
+- Initial diagnosis and justification of perio staging & grading
+- Explanation to patient about bone loss and systemic links
+- Agreed regenerative / surgical plan including brands (implants, membranes, grafts)
+- Specific maintenance recommendations and home care instructions
+- Notes for General / Ortho / Prostho / Medical team…`}
+              />
+            </Card>
+          </div>
         </div>
-
-        {/* Clasificación clínica y plan de tratamiento */}
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr),minmax(0,2.2fr)]">
-          <Card title="Clinical Classification">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Select label="Periodontal diagnosis (stage)">
-                <option value="">Select stage…</option>
-                <option>Stage I</option>
-                <option>Stage II</option>
-                <option>Stage III</option>
-                <option>Stage IV</option>
-              </Select>
-              <Select label="Grade (progression)">
-                <option value="">Select grade…</option>
-                <option>Grade A</option>
-                <option>Grade B</option>
-                <option>Grade C</option>
-              </Select>
-              <Select label="Pattern of bone loss">
-                <option value="">Select option…</option>
-                <option>Horizontal</option>
-                <option>Vertical</option>
-                <option>Combined</option>
-              </Select>
-              <Select label="Furcation involvement">
-                <option value="">Select option…</option>
-                <option>Class I</option>
-                <option>Class II</option>
-                <option>Class III</option>
-              </Select>
-              <TextArea
-                label="Clinical attachment loss summary"
-                placeholder="Worst sites, mean CAL, distribution by sextants, teeth with hopeless prognosis…"
-              />
-              <TextArea
-                label="Bleeding on probing / inflammation"
-                placeholder="Percentage of sites with BOP, suppuration, swollen or fibrotic tissues."
-              />
-            </div>
-          </Card>
-
-          <Card title="Treatment Plan & Maintenance">
-            <div className="grid gap-4">
-              <TextArea
-                label="Initial (non-surgical) phase"
-                placeholder="Oral hygiene instruction, supragingival / subgingival scaling and root planing, locally-delivered antibiotics, re-evaluation timing…"
-              />
-              <TextArea
-                label="Surgical / regenerative phase"
-                placeholder="Indication for flap surgery, regenerative procedures, resective surgery, mucogingival surgery, peri-implantitis therapy…"
-              />
-              <TextArea
-                label="Supportive periodontal therapy"
-                placeholder="Recall interval (e.g. every 3–4 months), parameters to monitor, criteria for retreatment…"
-              />
-            </div>
-          </Card>
-        </div>
-
-        {/* Risk factors + Pocket chart */}
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,2.4fr),minmax(0,3fr)]">
-          <Card title="Risk Factors & Modifiers">
-            <div className="grid gap-4">
-              <TextArea
-                label="Systemic risk factors"
-                placeholder="Diabetes, cardiovascular disease, osteoporosis, stress, genetic predisposition…"
-              />
-              <TextArea
-                label="Local risk factors"
-                placeholder="Plaque retention, calculus, defective restorations, anatomical factors, occlusal trauma…"
-              />
-              <TextArea
-                label="Habits"
-                placeholder="Smoking status, oral hygiene frequency and quality, bruxism, mouth breathing…"
-              />
-              <TextArea
-                label="Global risk assessment"
-                placeholder="Low / moderate / high risk and explanation."
-              />
-            </div>
-          </Card>
-
-          <Card title="Pocket Depth Chart (mm)">
-            <PeriodontalPocketChart />
-          </Card>
-        </div>
-
-        {/* Notas clínicas finales */}
-        <Card title="Clinical Notes">
-          <TextArea
-            placeholder="Short narrative tying periodontal findings, diagnosis, treatment decisions and patient communication. This note will sync with the main EMR timeline."
-          />
-        </Card>
       </div>
     </main>
   );

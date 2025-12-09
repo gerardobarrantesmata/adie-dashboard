@@ -1,47 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
+import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
-type ToothStatus =
-  | "sound"
-  | "caries"
-  | "restored"
-  | "sealed"
-  | "extracted"
-  | "erupting"
-  | "missing";
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
+    />
+  );
+}
 
-const TOOTH_STATUS_OPTIONS: { value: ToothStatus; label: string }[] = [
-  { value: "sound", label: "Sound" },
-  { value: "caries", label: "Caries" },
-  { value: "restored", label: "Restored" },
-  { value: "sealed", label: "Sealed" },
-  { value: "erupting", label: "Erupting" },
-  { value: "extracted", label: "Extracted" },
-  { value: "missing", label: "Missing" },
-];
-
-// Odontograma temporal universal: A–T
-const PRIMARY_UPPER: string[] = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
-const PRIMARY_LOWER: string[] = ["T", "S", "R", "Q", "P", "O", "N", "M", "L", "K"];
-
-// Erupción permanente rápida (solo mapa simple)
-const PERMANENT_ERUPTION_TEETH: string[] = [
-  "Permanent 6s",
-  "Permanent 1s/2s",
-  "Premolars",
-  "Canines",
-  "Second molars",
-];
-
-function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${props.className ?? ""}`}
+      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
     >
-      {children}
+      {props.children}
     </select>
   );
 }
@@ -54,36 +36,25 @@ function TextArea({
     <textarea
       {...props}
       rows={rows}
-      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 resize-none ${props.className ?? ""}`}
+      className={`w-full resize-none rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
     />
   );
 }
 
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${props.className ?? ""}`}
-    />
-  );
-}
-
-function Card({
-  title,
-  subtitle,
-  children,
-  badge,
-}: {
+function Card(props: {
   title: string;
   subtitle?: string;
-  children: React.ReactNode;
   badge?: string;
+  children: React.ReactNode;
 }) {
+  const { title, subtitle, badge, children } = props;
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-4 md:px-5 md:py-5">
+    <section className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-4 md:px-5 md:py-5 shadow-[0_22px_80px_rgba(15,23,42,0.95)]">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-200">
             {title}
           </h2>
           {subtitle && (
@@ -91,510 +62,767 @@ function Card({
           )}
         </div>
         {badge && (
-          <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-emerald-300">
+          <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-sky-200">
             {badge}
           </span>
         )}
       </div>
       {children}
-    </div>
+    </section>
   );
 }
 
-export default function PediatricDentistryRecordPage() {
-  // Estado simple para el odontograma temporal
-  const [primaryToothStatus, setPrimaryToothStatus] = useState<
-    Record<string, ToothStatus>
-  >(() => {
-    const initial: Record<string, ToothStatus> = {};
-    [...PRIMARY_UPPER, ...PRIMARY_LOWER].forEach((tooth) => {
-      initial[tooth] = "sound";
-    });
-    return initial;
-  });
-
-  // Estado para rápido mapa de erupción permanente
-  const [eruptionStatus, setEruptionStatus] = useState<
-    Record<string, string>
-  >(() => {
-    const initial: Record<string, string> = {};
-    PERMANENT_ERUPTION_TEETH.forEach((key) => {
-      initial[key] = "Age-appropriate";
-    });
-    return initial;
-  });
-
-  const handleToothStatusChange = (tooth: string, next: ToothStatus) => {
-    setPrimaryToothStatus((prev) => ({ ...prev, [tooth]: next }));
-  };
-
-  const handleEruptionChange = (item: string, value: string) => {
-    setEruptionStatus((prev) => ({ ...prev, [item]: value }));
-  };
-
+export default function PediaLayerPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-50">
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-8">
-        {/* Header */}
-        <header className="mb-8 flex items-center justify-between gap-4">
+        {/* HEADER TÍTULO + BOTONES */}
+        <header className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-emerald-400">
-              Specialties · Layer 3
+            <p className="text-[11px] uppercase tracking-[0.28em] text-sky-400">
+              Specialties · Pediatric Dentistry
             </p>
-            <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
-              Pediatric Dentistry Clinical Record
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-50 md:text-3xl">
+              Pediatric Dentistry · Growth, Family & Prevention Record
             </h1>
-            <p className="mt-2 max-w-xl text-xs md:text-sm text-slate-400">
-              Complete pediatric chart to document chief complaint, history,
-              behavior, risk assessment, eruption and temporal dentition status.
+            <p className="mt-1 max-w-2xl text-xs text-slate-400 md:text-sm">
+              Hospital-level pediatric cockpit for ADIE: caregivers, behavior,
+              systemic conditions, school context, prevention and treatment
+              plans — ready to sync with the pediatric chart, ortho layer and
+              vaccines / systemic modules.
             </p>
           </div>
 
-          <Link
-            href="/specialties"
-            className="rounded-full border border-slate-700 bg-slate-900/70 px-4 py-1.5 text-xs md:text-sm text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors"
-          >
-            ← Back to Specialties Universe
-          </Link>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-[11px] text-slate-200 hover:border-sky-400 hover:text-sky-100 transition-colors">
+              View full EMR
+            </button>
+            <button className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-[11px] text-slate-200 hover:border-emerald-400 hover:text-emerald-100 transition-colors">
+              Pediatric timeline
+            </button>
+            <Link
+              href="/specialties"
+              className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-[11px] text-slate-300 hover:border-slate-400 hover:text-slate-50 transition-colors"
+            >
+              ← Back to Specialties Universe
+            </Link>
+          </div>
         </header>
 
-        {/* Patient context */}
-        <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-4 md:px-6 md:py-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
-                Patient & Case Context
-              </h2>
-              <p className="mt-1 text-[11px] text-slate-500">
-                Link with EMR and define pediatric case metadata.
+        {/* BARRA ESTÁNDAR: BACK TO MPR + SAVE & DASHBOARD */}
+        <SpecialtyTopActions specialtyLabel="Pediatric Dentistry" />
+
+        {/* HEADER CLÍNICO TIPO ORTHO/IMPLANTS/PERIO */}
+        <section className="mb-4 rounded-3xl border border-slate-800 bg-slate-950/80 px-5 py-3 shadow-[0_24px_80px_rgba(15,23,42,0.95)]">
+          <div className="grid gap-4 md:grid-cols-[0.9fr,2fr,1.2fr] md:items-center">
+            {/* FOTO PACIENTE */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+                Patient photo
               </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 text-[11px] md:text-xs">
-              <button className="rounded-full border border-sky-500/60 bg-sky-500/10 px-3 py-1 font-medium text-sky-100 hover:bg-sky-500/20 transition">
-                Select patient from EMR
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/80 text-[11px] text-slate-500">
+                Photo
+              </div>
+              <button className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[11px] text-slate-200 hover:border-sky-400 hover:text-sky-100 transition-colors">
+                ⬆ Upload
               </button>
-              <div className="flex items-center gap-1 text-slate-400">
-                <span className="text-slate-500">ID:</span>
-                <span className="font-mono text-[11px] text-slate-200">
-                  ADIE-PED-0001
-                </span>
-              </div>
-              <div className="flex items-center gap-1 text-slate-400">
-                <span className="text-slate-500">Age:</span>
-                <span>—</span>
-              </div>
-              <div className="flex items-center gap-1 text-slate-400">
-                <span className="text-slate-500">Status:</span>
-                <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-emerald-300">
-                  Active care
-                </span>
-              </div>
             </div>
-          </div>
 
-          {/* Responsible adult */}
-          <div className="mt-4 grid gap-4 md:grid-cols-[2.2fr,1.3fr]">
-            <div className="grid gap-3 md:grid-cols-3">
-              <div className="md:col-span-2">
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Responsible adult / parent
-                </label>
-                <Input placeholder="Full name of parent or legal guardian…" />
+            {/* DATOS + FLAGS */}
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+                <span className="rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                  Active pediatric patient
+                </span>
               </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Relationship
-                </label>
-                <Select defaultValue="">
-                  <option value="">Select…</option>
-                  <option>Mother</option>
-                  <option>Father</option>
-                  <option>Grandparent</option>
-                  <option>Sibling</option>
-                  <option>Legal guardian</option>
-                  <option>Other caregiver</option>
-                </Select>
+
+              <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-slate-50">
+                <span>John / Jane Kid</span>
+                <span className="text-slate-500">·</span>
+                <span className="text-[11px] text-slate-300">
+                  ID ADIE-PT-CH-0001
+                </span>
               </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Contact phone
-                </label>
-                <Input placeholder="+1 (___) ___-____" />
+
+              <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
+                <span>DOB: 2017-05-23</span>
+                <span>· Age: 7y</span>
+                <span>· Gender: Female</span>
+                <span>· National ID / passport: 1-0000-0000</span>
               </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Accompanied by
-                </label>
-                <Input placeholder="Person present at the visit…" />
+
+              <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold uppercase tracking-[0.18em] text-emerald-200">
+                  VIP
+                </span>
+                <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-200">
+                  Financial hold · Review balance
+                </span>
+                <span className="rounded-full bg-slate-900 px-2 py-0.5 text-slate-300">
+                  Pediatric profile: Medium caries risk · Anxious
+                </span>
               </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Consent status
-                </label>
-                <Select defaultValue="complete">
-                  <option value="complete">Signed – complete</option>
-                  <option value="limited">Signed – limited</option>
-                  <option value="pending">Pending</option>
-                  <option value="refused">Refused</option>
-                </Select>
+
+              <div className="grid gap-2 text-[10px] text-slate-400 md:grid-cols-2">
+                <div>
+                  <p className="mb-0.5 font-medium text-slate-300">
+                    Pediatric & medical flags
+                  </p>
+                  <p className="leading-snug">
+                    Asthma · seasonal allergies · no hospitalizations · vaccines
+                    up to date · no known drug allergies.
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-0.5 font-medium text-slate-300">
+                    Behavior & school flags
+                  </p>
+                  <p className="leading-snug">
+                    Mild anxiety in new environments · good school performance ·
+                    possible attention difficulties reported by teacher.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                Medical alerts & pediatric notes
-              </label>
-              <TextArea placeholder="Asthma, congenital heart disease, medications, allergies, hospitalizations, special needs…" />
+            {/* RIESGO GLOBAL + CLEARANCE */}
+            <div className="flex flex-col items-end gap-2.5">
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end text-right">
+                  <span className="text-[10px] uppercase tracking-[0.24em] text-slate-400">
+                    Global pediatric risk
+                  </span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className="relative h-9 w-9">
+                      <div className="absolute left-1/2 top-0 -translate-x-1/2 border-l-[9px] border-r-[9px] border-b-[16px] border-l-transparent border-r-transparent border-b-emerald-400/80" />
+                      <div className="absolute left-1/2 top-[5px] -translate-x-1/2 border-l-[9px] border-r-[9px] border-b-[16px] border-l-transparent border-r-transparent border-b-amber-400/90" />
+                      <div className="absolute left-1/2 top-[10px] -translate-x-1/2 border-l-[9px] border-r-[9px] border-b-[16px] border-l-transparent border-r-transparent border-b-rose-500/90" />
+                    </div>
+                    <div className="flex flex-col text-[10px] text-slate-300">
+                      <span>Pedia Safety Score: 84/100</span>
+                      <span className="text-emerald-300">
+                        Stable · chair-side care appropriate
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button className="rounded-full border border-emerald-500/70 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/20 transition-colors">
+                Cleared for pediatric dental care · No critical alerts
+              </button>
+
+              <div className="flex flex-col items-end text-[10px] text-slate-400">
+                <span>Sedation: not required · consider nitrous if anxious</span>
+                <span>Emergency contact verified today</span>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Main grid */}
-        <section className="grid gap-5 lg:grid-cols-[1.5fr,1.5fr]">
-          {/* Left column: complaint, behavior, risk */}
+        {/* LAYOUT PRINCIPAL */}
+        <div className="grid gap-5 lg:grid-cols-[1.7fr,1.2fr]">
+          {/* COLUMNA IZQUIERDA */}
           <div className="space-y-5">
+            {/* CONTEXTO & CUIDADORES */}
             <Card
-              title="Chief Complaint & History"
-              subtitle="Document why the child is here today, plus relevant dental / medical history."
+              title="Pediatric Context & Caregivers"
+              subtitle="Quién trae al niño, quién firma, custodia, teléfonos y contexto familiar."
+              badge="Caregivers"
             >
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Chief complaint (parent / child)
+              <div className="grid gap-3 text-[11px] md:grid-cols-4">
+                <div className="md:col-span-2">
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Patient (link EMR)
                   </label>
-                  <TextArea placeholder="Example: Pain at night on lower left molar, difficulty chewing, swelling reported by parent…" />
+                  <button className="w-full rounded-full border border-sky-500/70 bg-sky-500/10 px-3 py-2 text-[11px] font-semibold text-sky-100 hover:bg-sky-500/20 transition">
+                    Select patient from EMR
+                  </button>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Dental / medical history
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Pediatric case ID
                   </label>
-                  <TextArea placeholder="Previous treatments, trauma, systemic diseases, long-term medications, hospitalizations…" />
-                </div>
-              </div>
-            </Card>
-
-            <Card
-              title="Behavior & Cooperation"
-              subtitle="Pediatric behavior evaluation to plan management strategies."
-            >
-              <div className="grid gap-3 md:grid-cols-3">
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Frankl behavior scale
-                  </label>
-                  <Select defaultValue="">
-                    <option value="">Select level…</option>
-                    <option>1 — Definitely negative</option>
-                    <option>2 — Negative</option>
-                    <option>3 — Positive</option>
-                    <option>4 — Definitely positive</option>
-                  </Select>
+                  <Input placeholder="ADIE-PEDIA-0001" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Cooperation summary
-                  </label>
-                  <Select defaultValue="">
-                    <option value="">Select option…</option>
-                    <option>Excellent</option>
-                    <option>Acceptable with guidance</option>
-                    <option>Anxious but manageable</option>
-                    <option>Requires advanced behavior guidance</option>
-                    <option>Consider pharmacologic management</option>
-                  </Select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Non-pharmacologic techniques
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Age group
                   </label>
                   <Select defaultValue="">
                     <option value="">Select…</option>
-                    <option>Tell-show-do</option>
-                    <option>Positive reinforcement</option>
-                    <option>Distraction</option>
-                    <option>Voice control</option>
-                    <option>Parental presence / absence</option>
-                    <option>Desensitization</option>
+                    <option>0–3 years (toddlers)</option>
+                    <option>4–6 years</option>
+                    <option>7–12 years</option>
+                    <option>13–17 years</option>
                   </Select>
                 </div>
               </div>
-              <div className="mt-3">
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Behavior notes
-                </label>
-                <TextArea placeholder="Describe how the child responded, triggers, and successful strategies…" />
+
+              <div className="mt-4 grid gap-3 text-[11px] md:grid-cols-4">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Primary caregiver name
+                  </label>
+                  <Input placeholder="Full name" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Relationship to child
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Mother</option>
+                    <option>Father</option>
+                    <option>Both parents</option>
+                    <option>Grandparent</option>
+                    <option>Legal guardian</option>
+                    <option>Foster parent</option>
+                    <option>Other relative</option>
+                    <option>Other (non-relative)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Lives with child?
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Yes, full time</option>
+                    <option>Yes, shared custody</option>
+                    <option>No, different household</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Caregiver phone
+                  </label>
+                  <Input placeholder="+1 (___) ___-____" />
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 text-[11px] md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Legal guardianship / custody
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Both parents</option>
+                    <option>Mother only</option>
+                    <option>Father only</option>
+                    <option>Shared custody (court order)</option>
+                    <option>Legal guardian / foster care</option>
+                    <option>Other (specify in notes)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Who can sign consent?
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Any legal parent / guardian</option>
+                    <option>Only primary caregiver present</option>
+                    <option>Specific person (see notes)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Consent notes
+                  </label>
+                  <Input placeholder="Court orders, limitations, extra authorizations…" />
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 text-[11px] md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Secondary contact / emergency
+                  </label>
+                  <Input placeholder="Name & relationship" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Secondary phone
+                  </label>
+                  <Input placeholder="+1 (___) ___-____" />
+                </div>
               </div>
             </Card>
 
+            {/* MEDICAL, DESARROLLO & NECESIDADES ESPECIALES */}
             <Card
-              title="Caries Risk & Habits"
-              subtitle="Global caries risk, diet, hygiene and oral habits."
+              title="Medical, Development & Special Needs"
+              subtitle="Condiciones sistémicas, desarrollo, comunicación y necesidades especiales."
+              badge="Medical / Dev"
             >
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-3 text-[11px] md:grid-cols-4">
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Global caries risk
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Systemic conditions
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>No relevant systemic disease</option>
+                    <option>Asthma</option>
+                    <option>Diabetes</option>
+                    <option>Congenital heart disease</option>
+                    <option>Epilepsy / seizures</option>
+                    <option>Bleeding disorder</option>
+                    <option>Autism spectrum</option>
+                    <option>ADHD</option>
+                    <option>Genetic syndrome</option>
+                    <option>Other (see notes)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Pediatrician
+                  </label>
+                  <Input placeholder="Name / clinic" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Pediatrician contact
+                  </label>
+                  <Input placeholder="Phone / email" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    ASA status (if known)
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>ASA I</option>
+                    <option>ASA II</option>
+                    <option>ASA III</option>
+                    <option>ASA IV or higher</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 text-[11px] md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Medications
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Asthma inhalers, ADHD meds, anticonvulsants, others…"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Allergies (sync with EMR)
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Drug allergies, food allergies, latex, local anesthetics…"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Development & communication
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Typical development · verbal</option>
+                    <option>Typical development · shy / limited speech</option>
+                    <option>Developmental delay · verbal</option>
+                    <option>Developmental delay · non-verbal / uses devices</option>
+                    <option>Autism spectrum · sensory sensitive</option>
+                    <option>Other neurodiversity (see notes)</option>
+                  </Select>
+                  <TextArea
+                    rows={2}
+                    className="mt-2"
+                    placeholder="Best way to communicate, sensory triggers, coping strategies…"
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* COMPORTAMIENTO & LOGÍSTICA DE VISITA */}
+            <Card
+              title="Behavior & Visit Logistics"
+              subtitle="Comportamiento esperado, tipo de cita, horarios ideales y apoyos necesarios."
+              badge="Behavior"
+            >
+              <div className="grid gap-3 text-[11px] md:grid-cols-4">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Behavior in chair
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Cooperative</option>
+                    <option>Cooperative with breaks</option>
+                    <option>Potentially anxious</option>
+                    <option>Non-cooperative</option>
+                    <option>Needs pharmacologic support</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Visit type
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>New patient exam</option>
+                    <option>Recall / check-up</option>
+                    <option>Emergency / pain</option>
+                    <option>Trauma</option>
+                    <option>Special needs extended visit</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Preferred time of day
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Early morning</option>
+                    <option>Mid-morning</option>
+                    <option>Afternoon (after school)</option>
+                    <option>Flexible</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Interpreter / language support
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Not needed</option>
+                    <option>Spanish interpreter</option>
+                    <option>Sign language</option>
+                    <option>Other language</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 text-[11px] md:grid-cols-4">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Pain level (0–10)
+                  </label>
+                  <Input placeholder="e.g. 3/10" />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Transport to clinic
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Car with caregiver</option>
+                    <option>Public transport</option>
+                    <option>School transport</option>
+                    <option>Other (see notes)</option>
+                  </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Visit logistics notes
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Need extra time, quiet room, sibling appointments together, pre-visit call, etc."
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* COLUMNA DERECHA */}
+          <div className="space-y-5">
+            {/* CARIES & PREVENCIÓN */}
+            <Card
+              title="Caries & Preventive Risk Engine"
+              subtitle="Exposición a azúcar, flúor, hábitos nocturnos y riesgo de caries."
+              badge="Caries Risk"
+            >
+              <div className="grid gap-3 text-[11px] md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Caries risk level
                   </label>
                   <Select defaultValue="">
                     <option value="">Select…</option>
                     <option>Low</option>
                     <option>Moderate</option>
                     <option>High</option>
-                    <option>Extreme</option>
+                    <option>Extremely high (ECC)</option>
                   </Select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Fluoride exposure
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Fluoride exposure at home
                   </label>
                   <Select defaultValue="">
                     <option value="">Select…</option>
-                    <option>Optimal – fluoridated water / toothpaste</option>
-                    <option>Suboptimal – no systemic fluoride</option>
-                    <option>Topical only – toothpaste / varnish</option>
-                    <option>High – multiple sources, monitor fluorosis</option>
+                    <option>Fluoride toothpaste 2×/day</option>
+                    <option>Toothpaste 1×/day</option>
+                    <option>No fluoride toothpaste</option>
+                    <option>Fluoridated water</option>
+                    <option>Systemic + topical</option>
                   </Select>
                 </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 text-[11px] md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Diet & snacking pattern
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Diet & sugar pattern
                   </label>
                   <Select defaultValue="">
                     <option value="">Select…</option>
-                    <option>Low sugar, structured meals</option>
-                    <option>Frequent sugary snacks / drinks</option>
-                    <option>Night-time bottle / breastfeeding with sugar</option>
-                    <option>High cariogenic diet, poor structure</option>
+                    <option>Low sugar · occasional treats</option>
+                    <option>Daily sweets / drinks</option>
+                    <option>Frequent sipping of sugary drinks</option>
+                    <option>Night-time bottle / sippy with sugar</option>
                   </Select>
-                </div>
-              </div>
-
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Oral hygiene habits
-                  </label>
-                  <TextArea placeholder="Frequency of brushing, supervision by adult, flossing, use of fluoridated toothpaste…" />
+                  <TextArea
+                    rows={3}
+                    className="mt-2"
+                    placeholder="Details on juice, soda, snacks, night feeding, etc."
+                  />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Oral habits
-                  </label>
-                  <TextArea placeholder="Thumb sucking, pacifier use, mouth breathing, bruxism, nail biting, lip sucking…" />
-                </div>
-              </div>
-            </Card>
-
-            <Card
-              title="Trauma & Radiographs"
-              subtitle="History of trauma and radiographic plan."
-            >
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Trauma history
-                  </label>
-                  <TextArea placeholder="Falls, sports injuries, dental trauma, emergency visits, sequelae…" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Radiographic plan
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Home hygiene pattern
                   </label>
                   <Select defaultValue="">
-                    <option value="">Select plan…</option>
-                    <option>No radiographs this visit</option>
-                    <option>Bitewings</option>
-                    <option>Periapicals – specific teeth</option>
-                    <option>Panoramic</option>
-                    <option>CBCT (only if necessary)</option>
+                    <option value="">Select…</option>
+                    <option>Brushing 2×/day + caregiver checks</option>
+                    <option>Brushing 2×/day self-performed</option>
+                    <option>Brushing 1×/day</option>
+                    <option>Irregular brushing</option>
+                    <option>No routine brushing</option>
                   </Select>
-                  <label className="mt-2 mb-1 block text-[11px] font-medium text-slate-300">
-                    Radiographic notes
+                  <label className="mt-2 mb-1 block font-medium text-slate-300">
+                    Sealants / preventive resin status
                   </label>
-                  <TextArea rows={2} placeholder="Justification, ALARA considerations, previous images…" />
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Right column: odontogram & eruption */}
-          <div className="space-y-5">
-            <Card
-              title="Temporal Odontogram · Primary Teeth (A–T)"
-              subtitle="Click status for each primary tooth. Later this will sync with the SVG dental chart and analytics."
-              badge="Temporal dentition"
-            >
-              {/* Upper arch */}
-              <div className="mb-3">
-                <p className="mb-1 text-[11px] font-medium text-emerald-300">
-                  Upper arch — primary dentition
-                </p>
-                <p className="mb-2 text-[10px] text-slate-500">
-                  From right to left · A → J
-                </p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                  {PRIMARY_UPPER.map((tooth) => (
-                    <div
-                      key={tooth}
-                      className="rounded-xl border border-slate-800 bg-slate-950/80 px-2 py-2"
-                    >
-                      <div className="mb-1 flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-semibold text-slate-100">
-                          {tooth}
-                        </span>
-                        <span className="rounded-full bg-slate-800 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.16em] text-slate-400">
-                          {primaryToothStatus[tooth]}
-                        </span>
-                      </div>
-                      <Select
-                        value={primaryToothStatus[tooth]}
-                        onChange={(e) =>
-                          handleToothStatusChange(
-                            tooth,
-                            e.target.value as ToothStatus
-                          )
-                        }
-                        className="text-[11px]"
-                      >
-                        {TOOTH_STATUS_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                  ))}
+                  <TextArea
+                    rows={3}
+                    placeholder="Which molars sealed, dates, materials, retention checks…"
+                  />
                 </div>
               </div>
 
-              {/* Lower arch */}
-              <div className="mt-4">
-                <p className="mb-1 text-[11px] font-medium text-emerald-300">
-                  Lower arch — primary dentition
-                </p>
-                <p className="mb-2 text-[10px] text-slate-500">
-                  From left to right · K → T
-                </p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                  {PRIMARY_LOWER.map((tooth) => (
-                    <div
-                      key={tooth}
-                      className="rounded-xl border border-slate-800 bg-slate-950/80 px-2 py-2"
-                    >
-                      <div className="mb-1 flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-semibold text-slate-100">
-                          {tooth}
-                        </span>
-                        <span className="rounded-full bg-slate-800 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.16em] text-slate-400">
-                          {primaryToothStatus[tooth]}
-                        </span>
-                      </div>
-                      <Select
-                        value={primaryToothStatus[tooth]}
-                        onChange={(e) =>
-                          handleToothStatusChange(
-                            tooth,
-                            e.target.value as ToothStatus
-                          )
-                        }
-                        className="text-[11px]"
-                      >
-                        {TOOTH_STATUS_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                  ))}
+              <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/90 px-3 py-3 text-[10px]">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="font-medium text-slate-200">
+                    Quick risk summary (concept)
+                  </span>
+                  <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-200">
+                    Global caries risk: Moderate–High
+                  </span>
                 </div>
+                <p className="text-slate-400">
+                  Future: ADIE will calculate a pediatric caries risk score
+                  combining diet, hygiene, fluoride, socio-economic and previous
+                  caries experience.
+                </p>
               </div>
             </Card>
 
+            {/* PLAN DE TRATAMIENTO */}
             <Card
-              title="Eruption & Mixed Dentition Map"
-              subtitle="Quick snapshot of permanent eruption status for age-appropriate evaluation."
-              badge="Growth"
+              title="Pediatric Treatment & Visit Plan"
+              subtitle="Qué se hará hoy, qué se hará por fases y cómo estabilizar al paciente."
+              badge="Treatment"
             >
-              <div className="grid gap-3">
-                {PERMANENT_ERUPTION_TEETH.map((item) => (
-                  <div
-                    key={item}
-                    className="flex flex-col gap-1 rounded-xl border border-slate-800 bg-slate-950/80 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="text-[11px] text-slate-200">
-                      <p className="font-medium">{item}</p>
-                    </div>
-                    <div className="sm:w-48">
-                      <Select
-                        value={eruptionStatus[item]}
-                        onChange={(e) =>
-                          handleEruptionChange(item, e.target.value)
-                        }
-                        className="text-[11px]"
-                      >
-                        <option>Age-appropriate</option>
-                        <option>Delayed eruption</option>
-                        <option>Early eruption</option>
-                        <option>Impaction / need to monitor</option>
-                        <option>Appliances in place</option>
-                      </Select>
-                    </div>
-                  </div>
-                ))}
+              <div className="grid gap-3 text-[11px] md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Today&apos;s visit focus
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Comprehensive exam + prophy</option>
+                    <option>Recall prophy + fluoride</option>
+                    <option>Restorative (fillings)</option>
+                    <option>Pulp therapy / crowns</option>
+                    <option>Trauma management</option>
+                    <option>Behavior / acclimatization visit</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Planned anesthesia / analgesia
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Local only</option>
+                    <option>Nitrous oxide</option>
+                    <option>Oral sedation (external provider)</option>
+                    <option>General anesthesia (hospital)</option>
+                    <option>None / not needed</option>
+                  </Select>
+                </div>
               </div>
 
-              <div className="mt-3">
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Eruption / growth notes
+              <div className="mt-3 grid gap-3 text-[11px] md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Phase 1 · Stabilization
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Emergency treatments, pain control, infection, temporary restorations…"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Phase 2 · Definitive treatment
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Definitive restorations, pulpotomies, extractions, space maintenance…"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Phase 3 · Maintenance
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Recall frequency, sealant checks, ortho monitoring, trauma follow-up…"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/90 px-3 py-3 text-[11px]">
+                <label className="mb-1 block font-medium text-slate-300">
+                  Trauma / emergency protocol notes
                 </label>
-                <TextArea rows={3} placeholder="Asymmetries, space loss, early loss of primary teeth, crowding, crossbite, need for interceptive orthodontics…" />
+                <TextArea
+                  rows={3}
+                  placeholder="Avulsed tooth management, splinting dates, radiographic follow-up schedule…"
+                />
               </div>
             </Card>
 
+            {/* ESCUELA & CONTEXTO SOCIAL */}
             <Card
-              title="Treatment Plan & Recall"
-              subtitle="High-level plan for this child and recall strategy."
+              title="School & Social Context"
+              subtitle="Escolaridad, rendimiento, apoyo educativo y actividades."
+              badge="School / Social"
             >
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3 text-[11px] md:grid-cols-3">
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Treatment priority
+                  <label className="mb-1 block font-medium text-slate-300">
+                    School grade
                   </label>
                   <Select defaultValue="">
                     <option value="">Select…</option>
-                    <option>Emergency – pain / infection control</option>
-                    <option>Stabilization – caries control</option>
-                    <option>Definitive restorative treatment</option>
-                    <option>Behavior / desensitization phase</option>
-                    <option>Interceptive orthodontics</option>
+                    <option>Pre-K / Kindergarten</option>
+                    <option>1st–3rd grade</option>
+                    <option>4th–6th grade</option>
+                    <option>7th–9th grade</option>
+                    <option>10th–12th grade</option>
                   </Select>
-                  <label className="mt-2 mb-1 block text-[11px] font-medium text-slate-300">
-                    Treatment summary
-                  </label>
-                  <TextArea rows={3} placeholder="Sealants, restorations, pulpotomies, SSCs, extractions, space maintainers, behavior visits, ortho consult…" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                    Recall interval
+                  <label className="mb-1 block font-medium text-slate-300">
+                    School type
                   </label>
                   <Select defaultValue="">
                     <option value="">Select…</option>
-                    <option>3 months</option>
-                    <option>4 months</option>
-                    <option>6 months</option>
-                    <option>12 months</option>
+                    <option>Public</option>
+                    <option>Private</option>
+                    <option>Homeschool</option>
+                    <option>Special education center</option>
                   </Select>
-                  <label className="mt-2 mb-1 block text-[11px] font-medium text-slate-300">
-                    Home care / education notes
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Academic performance
                   </label>
-                  <TextArea rows={3} placeholder="Instructions given to child and parent, brushing demo, diet advice, written materials, follow-up plan…" />
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Excellent / above average</option>
+                    <option>Average</option>
+                    <option>Needs support</option>
+                    <option>Not evaluated / unknown</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 text-[11px] md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Special education / IEP
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>No IEP / no special education</option>
+                    <option>Has IEP / special education services</option>
+                    <option>IEP in process</option>
+                    <option>Unknown</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Sports & activities
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Soccer, basketball, gymnastics, martial arts… (mouthguard recommendation)."
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 text-[11px] md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Oral habits & sleep
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>No relevant habits reported</option>
+                    <option>Thumb / finger sucking</option>
+                    <option>Pacifier beyond age 3</option>
+                    <option>Mouth breathing</option>
+                    <option>Bruxism / grinding</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block font-medium text-slate-300">
+                    Social / family notes
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Recent changes at home, stressors, supports that may affect dental care…"
+                  />
                 </div>
               </div>
             </Card>
+
+            {/* EDUCACIÓN & CONSENTIMIENTO */}
+            <Card
+              title="Family Education & Consent Summary"
+              subtitle="Mensajes clave entregados a la familia y acuerdos de tratamiento."
+              badge="Education / Consent"
+            >
+              <TextArea
+                rows={6}
+                placeholder={`Example template:
+- Reviewed caries risk, diet and brushing technique with caregiver.
+- Explained need for sealants and fluoride; caregiver agreed to proposed plan.
+- Discussed behavior management strategy (tell-show-do, nitrous, breaks).
+- Clarified who can sign future consents and emergency contact procedures.
+- Family questions and decisions documented here…`}
+              />
+              <p className="mt-2 text-[10px] text-slate-500">
+                Future: this section will auto-generate a parent-friendly
+                summary in plain language and could be exported as a PDF or
+                WhatsApp message directly from ADIE.
+              </p>
+            </Card>
           </div>
-        </section>
+        </div>
       </div>
     </main>
   );

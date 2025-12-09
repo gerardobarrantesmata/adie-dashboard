@@ -1,0 +1,440 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
+    />
+  );
+}
+
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      {...props}
+      className={`w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
+    >
+      {props.children}
+    </select>
+  );
+}
+
+function TextArea({
+  rows = 3,
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      {...props}
+      rows={rows}
+      className={`w-full resize-none rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${
+        props.className ?? ""
+      }`}
+    />
+  );
+}
+
+function Card(props: {
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  children: React.ReactNode;
+}) {
+  const { title, subtitle, badge, children } = props;
+  return (
+    <section className="rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-4 md:px-5 md:py-5 shadow-[0_20px_70px_rgba(15,23,42,0.9)]">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="mt-1 text-[11px] text-slate-500">{subtitle}</p>
+          )}
+        </div>
+        {badge && (
+          <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-sky-200">
+            {badge}
+          </span>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+type OrthoPhase = "Assessment" | "Alignment" | "Finishing";
+
+export default function OrthodonticsWorkspacePage() {
+  const [activePhase, setActivePhase] = useState<OrthoPhase>("Assessment");
+  const [currentAligner, setCurrentAligner] = useState(5);
+  const [totalAligners, setTotalAligners] = useState(24);
+  const [monthsInTreatment, setMonthsInTreatment] = useState(6);
+
+  const alignerProgress =
+    totalAligners > 0 ? Math.min(100, (currentAligner / totalAligners) * 100) : 0;
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-slate-50">
+      <div className="mx-auto max-w-6xl px-4 pb-24 pt-8">
+        {/* HEADER */}
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-sky-400">
+              Specialties · Layer 3
+            </p>
+            <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
+              Orthodontics · Braces & Clear Aligner Workspace
+            </h1>
+            <p className="mt-2 max-w-2xl text-xs md:text-sm text-slate-400">
+              Document malocclusion, growth, appliance choices and aligner
+              staging — with a live treatment timeline that later will sync with
+              ADIE&apos;s global dental chart and pediatric / TMJ layers.
+            </p>
+          </div>
+
+          <Link
+            href="/specialties"
+            className="rounded-full border border-slate-700 bg-slate-900/70 px-4 py-1.5 text-xs md:text-sm text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors"
+          >
+            ← Back to Specialties Universe
+          </Link>
+        </header>
+
+        {/* PHASE TABS */}
+        <div className="mb-5 flex flex-wrap gap-2 text-[11px]">
+          {(["Assessment", "Alignment", "Finishing"] as OrthoPhase[]).map(
+            (phase) => (
+              <button
+                key={phase}
+                type="button"
+                onClick={() => setActivePhase(phase)}
+                className={`rounded-full border px-3 py-1 transition ${
+                  activePhase === phase
+                    ? "border-sky-500 bg-sky-500/20 text-sky-100"
+                    : "border-slate-700 bg-slate-900/70 text-slate-300 hover:border-sky-500/70 hover:text-sky-100"
+                }`}
+              >
+                {phase}
+              </button>
+            )
+          )}
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[1.5fr,1.5fr]">
+          {/* LEFT COLUMN */}
+          <div className="space-y-5">
+            <Card
+              title="Ortho Case Context"
+              subtitle="Link EMR, growth status and baseline malocclusion."
+              badge="Context"
+            >
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Patient (link EMR)
+                  </label>
+                  <button className="w-full rounded-full border border-sky-500/70 bg-sky-500/10 px-3 py-2 text-[11px] font-semibold text-sky-100 hover:bg-sky-500/20 transition">
+                    Select patient from EMR
+                  </button>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Ortho case ID
+                  </label>
+                  <Input placeholder="ADIE-ORTHO-0001" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Growth status
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Pre-growth spurt</option>
+                    <option>Peak growth</option>
+                    <option>Post-growth / adult</option>
+                    <option>Unknown</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-4">
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Skeletal pattern
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Class I</option>
+                    <option>Class II</option>
+                    <option>Class III</option>
+                    <option>Asymmetric / other</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Vertical pattern
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Normodivergent</option>
+                    <option>Hyperdivergent (high angle)</option>
+                    <option>Hypodivergent (low angle)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Main complaint (patient)
+                  </label>
+                  <Input placeholder="Crowding, open bite, smile aesthetics…" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Risk flags
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Normal risk</option>
+                    <option>High caries risk</option>
+                    <option>Periodontal compromise</option>
+                    <option>Root resorption history</option>
+                    <option>TMJ / facial pain</option>
+                  </Select>
+                </div>
+              </div>
+            </Card>
+
+            <Card
+              title="Appliance & Biomechanics Plan"
+              subtitle="Brackets vs aligners, extractions, distalization and anchorage."
+              badge="Planning"
+            >
+              <div className="grid gap-3 md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Main appliance
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Metallic fixed brackets</option>
+                    <option>Esthetic fixed brackets</option>
+                    <option>Clear aligners (Invisalign-type)</option>
+                    <option>Lingual appliance</option>
+                    <option>Hybrid (aligners + fixed)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Extraction plan
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Non-extraction</option>
+                    <option>4 premolars</option>
+                    <option>Upper premolars only</option>
+                    <option>Lower premolars only</option>
+                    <option>Asymmetric / custom</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Anchorage strategy
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Conventional anchorage</option>
+                    <option>TADs / mini-implants</option>
+                    <option>Transpalatal / lingual arch</option>
+                    <option>Headgear / extraoral</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Key treatment objectives
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Align incisors, correct overjet/overbite, close spaces, improve smile arc, coordinate arches…"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                    Special considerations
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Thin biotype, short roots, trauma history, periodontal limits, interdisciplinary coordination…"
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* RIGHT COLUMN */}
+          <div className="space-y-5">
+            <Card
+              title="Aligner / Braces Timeline"
+              subtitle="Track stages, aligner number, refinements and total duration."
+              badge="Timeline"
+            >
+              <div className="grid gap-3 md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Treatment mode
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Clear aligners only</option>
+                    <option>Fixed appliances only</option>
+                    <option>Hybrid</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Total planned aligners
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={totalAligners}
+                    onChange={(e) =>
+                      setTotalAligners(Math.max(0, Number(e.target.value || 0)))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Current aligner / activation
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={currentAligner}
+                    onChange={(e) =>
+                      setCurrentAligner(Math.max(0, Number(e.target.value || 0)))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Months in treatment
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={monthsInTreatment}
+                    onChange={(e) =>
+                      setMonthsInTreatment(Math.max(0, Number(e.target.value || 0)))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Expected total duration (months)
+                  </label>
+                  <Input placeholder="e.g. 18–24" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Refinement / finishing plan
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>No refinement planned</option>
+                    <option>1 refinement set</option>
+                    <option>2+ refinement sets</option>
+                    <option>Finishing with fixed appliances</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <p className="mb-1 text-[10px] font-medium text-slate-300">
+                  Visual progress
+                </p>
+                <div className="h-3 w-full overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-sky-400"
+                    style={{ width: `${alignerProgress}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-[10px] text-slate-400">
+                  {currentAligner}/{totalAligners} aligners • {monthsInTreatment}{" "}
+                  months in treatment. Future step: connect this bar to the
+                  Dental Chart timeline.
+                </p>
+              </div>
+            </Card>
+
+            <Card
+              title="Retention, Risks & Communication"
+              subtitle="Long-term stability and key messages for the patient."
+              badge="Retention"
+            >
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Retention plan
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Removable retainers (Essix)</option>
+                    <option>Hawley retainers</option>
+                    <option>Bonded fixed retainers</option>
+                    <option>Combination (fixed + removable)</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Retention risk level
+                  </label>
+                  <Select defaultValue="">
+                    <option value="">Select…</option>
+                    <option>Low relapse risk</option>
+                    <option>Moderate (crowding / rotations)</option>
+                    <option>High (spacing, open bite, severe rotations)</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Key warnings (roots, perio, TMJ)
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Root resorption risk, bone limits, perio support, TMJ monitoring…"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-slate-300">
+                    Messages documented with patient
+                  </label>
+                  <TextArea
+                    rows={3}
+                    placeholder="Explained need for retention, hygiene expectations, missed-alignment risks, need for check-ups…"
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}

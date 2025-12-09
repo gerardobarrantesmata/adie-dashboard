@@ -1,10 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
-
-/* ------------ UI BASICS ------------ */
 
 function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
@@ -74,7 +71,7 @@ function Card(props: {
   );
 }
 
-/* ------------ IMPLANT TYPES & SAFETY ------------ */
+/* ---- Implant safety sliders ---- */
 
 type ImplantSite = {
   id: string;
@@ -84,8 +81,6 @@ type ImplantSite = {
   availableBoneMm: number;
   implantLengthMm: number;
 };
-
-type GlobalRisk = "ok" | "borderline" | "critical";
 
 const INITIAL_SITES: ImplantSite[] = [
   {
@@ -149,129 +144,6 @@ function getSafetyLevel(site: ImplantSite) {
   };
 }
 
-/** Riesgo global del caso en función del peor margen óseo. */
-function getGlobalRisk(sites: ImplantSite[]): GlobalRisk {
-  if (!sites.length) return "ok";
-  let minMargin = Infinity;
-  for (const s of sites) {
-    const margin = s.availableBoneMm - s.implantLengthMm;
-    if (margin < minMargin) minMargin = margin;
-  }
-  if (minMargin < 1) return "critical";
-  if (minMargin < 3) return "borderline";
-  return "ok";
-}
-
-/* ------------ HEADER CLÍNICO CON ALERTA ------------ */
-
-function GlobalRiskPill({ level }: { level: GlobalRisk }) {
-  const map = {
-    ok: {
-      icon: "▲",
-      label: "Cleared for implants · safety margins within protocol",
-      classes:
-        "border-emerald-500/60 bg-emerald-500/10 text-emerald-100 shadow-[0_0_18px_rgba(16,185,129,0.45)]",
-    },
-    borderline: {
-      icon: "▲",
-      label: "Borderline safety · review CBCT & adjust lengths",
-      classes:
-        "border-amber-500/70 bg-amber-500/15 text-amber-100 shadow-[0_0_18px_rgba(245,158,11,0.5)]",
-    },
-    critical: {
-      icon: "▲",
-      label: "Critical risk · do NOT proceed without augmentation",
-      classes:
-        "border-rose-500/70 bg-rose-500/15 text-rose-100 shadow-[0_0_18px_rgba(248,113,113,0.6)]",
-    },
-  } as const;
-
-  const cfg = map[level];
-
-  return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${cfg.classes}`}
-    >
-      <span className="text-base leading-none">{cfg.icon}</span>
-      <span className="normal-case tracking-normal">{cfg.label}</span>
-    </span>
-  );
-}
-
-function PatientSnapshotBar({ level }: { level: GlobalRisk }) {
-  return (
-    <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-950/80 px-5 py-4 md:py-5">
-      <div className="flex flex-wrap items-start gap-4 md:gap-6">
-        {/* Foto + datos básicos */}
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-[10px] uppercase tracking-[0.18em] text-slate-400">
-              Patient photo
-            </div>
-            <button className="rounded-full border border-sky-500/70 bg-sky-500/10 px-3 py-1 text-[10px] font-semibold text-sky-100 hover:bg-sky-500/20">
-              ⬆ Upload
-            </button>
-          </div>
-
-          <div className="space-y-2 text-[11px]">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
-              Active implant patient
-            </p>
-            <p className="text-sm font-semibold text-slate-50">
-              John / Jane Doe{" "}
-              <span className="text-slate-500">·</span>{" "}
-              <span className="text-slate-300">ID ADIE-PT-0001</span>
-            </p>
-            <p className="text-[11px] text-slate-400">
-              DOB: 1975-03-12 · Age: 49y · Gender: Female · National ID / passport
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-medium text-amber-100">
-                ⭐ VIP
-              </button>
-              <button className="inline-flex items-center gap-1 rounded-full border border-rose-500/60 bg-rose-500/10 px-2.5 py-0.5 text-[10px] font-medium text-rose-100">
-                💳 Financial hold
-              </button>
-              <button className="inline-flex items-center gap-1 rounded-full border border-sky-500/60 bg-sky-500/10 px-2.5 py-0.5 text-[10px] font-medium text-sky-100">
-                🩺 View full EMR
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Resumen + alerta global a la derecha */}
-        <div className="ml-auto flex flex-col gap-3 text-[10px] text-slate-300 md:w-[360px]">
-          <GlobalRiskPill level={level} />
-
-          <div className="grid gap-3 md:grid-cols-1">
-            <div>
-              <p className="mb-1 font-semibold text-slate-200">
-                Systemic & medical flags
-              </p>
-              <p className="text-slate-400">
-                ASA II: controlled hypertension. HbA1c 6.7%. No
-                anticoagulants. Non-smoker. No bisphosphonate history.
-              </p>
-            </div>
-            <div>
-              <p className="mb-1 font-semibold text-slate-200">
-                Implant-specific risk notes
-              </p>
-              <ul className="space-y-0.5 text-slate-400">
-                <li>• Posterior mandible: check distance to canal on CBCT.</li>
-                <li>• Anterior maxilla: high smile line — manage aesthetics.</li>
-                <li>• Perio control acceptable · plaque low · good hygiene.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------ MAIN PAGE ------------ */
-
 export default function ImplantsRecordPage() {
   const [sites, setSites] = useState<ImplantSite[]>(INITIAL_SITES);
 
@@ -309,13 +181,11 @@ export default function ImplantsRecordPage() {
     );
   };
 
-  const globalRisk = getGlobalRisk(sites);
-
   return (
     <main className="min-h-screen bg-slate-950 text-slate-50">
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-8">
-        {/* HEADER PRINCIPAL */}
-        <header className="mb-4 flex items-center justify-between gap-4">
+        {/* Header */}
+        <header className="mb-8 flex items-center justify-between gap-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.28em] text-sky-400">
               Specialties · Layer 3
@@ -338,13 +208,7 @@ export default function ImplantsRecordPage() {
           </Link>
         </header>
 
-        {/* BARRA DE CONTROL: BACK TO MPR + SAVE & DASHBOARD */}
-        <SpecialtyTopActions specialtyLabel="Implants" />
-
-        {/* SNAPSHOT TIPO PATIENTS + ALERTA VERDE/ROJA */}
-        <PatientSnapshotBar level={globalRisk} />
-
-        {/* CONTEXTO DEL CASO */}
+        {/* Context */}
         <Card
           title="Implant Case Context"
           subtitle="Link with EMR, CBCT and prosthodontic plan."
@@ -442,9 +306,9 @@ export default function ImplantsRecordPage() {
           </div>
         </Card>
 
-        {/* MAIN GRID */}
+        {/* Main grid */}
         <div className="mt-6 grid gap-5 lg:grid-cols-[1.5fr,1.5fr]">
-          {/* LEFT COLUMN */}
+          {/* Left column: system + sliders */}
           <div className="space-y-5">
             <Card
               title="Implant System & Components"
@@ -458,9 +322,7 @@ export default function ImplantsRecordPage() {
                   </label>
                   <Select defaultValue="">
                     <option value="">Select…</option>
-                    <option>
-                      Nobel Biocare (NobelActive, NobelReplace, etc.)
-                    </option>
+                    <option>Nobel Biocare (NobelActive, NobelReplace, etc.)</option>
                     <option>Straumann (BL, BLX, TL, etc.)</option>
                     <option>Astra Tech / Dentsply Sirona</option>
                     <option>Zimmer Biomet</option>
@@ -556,10 +418,10 @@ export default function ImplantsRecordPage() {
               badge="Bone & length"
             >
               <p className="mb-3 text-[11px] text-slate-400">
-                Each row mirrors your periodontal BI grid, focused here on
-                vertical bone and implant length. The color band shows if the
-                combination is critical, limited or safe — designed to match
-                CBCT measurements and guided surgery planning.
+                Each row simulates the kind of chart you had for periodontics,
+                now focused on vertical bone and implant length. The color band
+                indicates if the current combination is critical, limited or
+                safe — ideal for matching CBCT measurements.
               </p>
 
               <div className="space-y-3">
@@ -592,7 +454,7 @@ export default function ImplantsRecordPage() {
                       </div>
 
                       <div className="grid gap-3 md:grid-cols-[1.2fr,1.2fr]">
-                        {/* LEFT: controles de sitio */}
+                        {/* Left side: tooth & mm controls */}
                         <div className="space-y-2">
                           <div className="grid grid-cols-3 gap-2">
                             <div>
@@ -647,7 +509,11 @@ export default function ImplantsRecordPage() {
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    adjustMm(site.id, "availableBoneMm", -1)
+                                    adjustMm(
+                                      site.id,
+                                      "availableBoneMm",
+                                      -1
+                                    )
                                   }
                                   className="h-7 w-7 rounded-full border border-slate-700 bg-slate-900 text-[13px] text-slate-200 hover:border-sky-500 hover:text-sky-200"
                                 >
@@ -698,13 +564,13 @@ export default function ImplantsRecordPage() {
                           </div>
                         </div>
 
-                        {/* RIGHT: barra visual + distancias */}
+                        {/* Right side: visual bar + distances */}
                         <div className="space-y-2">
                           <div>
                             <p className="mb-1 text-[10px] font-medium text-slate-300">
                               Safety visualization
                             </p>
-                            <div className="h-3 w-full overflow-hidden rounded-full bg-slate-800">
+                            <div className="h-3 w-full rounded-full bg-slate-800 overflow-hidden">
                               <div
                                 className={`h-full ${safety.bar}`}
                                 style={{
@@ -715,15 +581,16 @@ export default function ImplantsRecordPage() {
                                         Math.max(
                                           site.availableBoneMm,
                                           site.implantLengthMm
-                                        )) * 100
+                                        )) *
+                                        100
                                     ) || 0
                                   }%`,
                                 }}
                               />
                             </div>
                             <p className="mt-1 text-[10px] text-slate-500">
-                              Future step: link this bar to the CBCT / SVG view
-                              of the implant inside bone.
+                              Idea futura: conectar esto a la vista SVG del
+                              implante sobre el hueso (CBCT).
                             </p>
                           </div>
 
@@ -760,7 +627,7 @@ export default function ImplantsRecordPage() {
             </Card>
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* Right column: surgical details + notes */}
           <div className="space-y-5">
             <Card
               title="Surgical Details"

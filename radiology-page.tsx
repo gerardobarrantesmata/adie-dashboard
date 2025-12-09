@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
 function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
@@ -37,8 +36,7 @@ function TextArea({
       {...props}
       rows={rows}
       className={`w-full resize-none rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 outline-none ring-sky-500/60 focus:border-sky-400 focus:ring-1 ${
-        props.className ?? ""
-      }`}
+        props.className ?? ""}`}
     />
   );
 }
@@ -83,9 +81,9 @@ export default function RadiologyPage() {
     previewUrl: null,
   });
 
-  const [aiStatus, setAiStatus] = useState<"idle" | "analyzing" | "done">(
-    "idle"
-  );
+  const [aiStatus, setAiStatus] = useState<
+    "idle" | "analyzing" | "done"
+  >("idle");
 
   const [aiResult, setAiResult] = useState({
     boneLevel: "—",
@@ -104,7 +102,9 @@ export default function RadiologyPage() {
     };
   }, [uploaded.previewUrl]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -152,94 +152,81 @@ export default function RadiologyPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-50">
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-8">
-        {/* HEADER TÍTULO + BOTONES */}
-        <header className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        {/* Header */}
+        <header className="mb-8 flex items-center justify-between gap-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.28em] text-sky-400">
-              Specialties · Radiology
+              Specialties · Layer 3
             </p>
             <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
               Radiology · Imaging & ADIE AI
             </h1>
             <p className="mt-2 max-w-2xl text-xs md:text-sm text-slate-400">
-              Upload intraoral, panoramic or CBCT-derived images, attach them to
-              the patient record and let ADIE&apos;s future AI layer assist with
-              bone levels, caries suspicion and periapical findings.
+              Upload intraoral, panoramic or CBCT-derived images, attach them
+              to the patient record and let ADIE&apos;s future AI layer assist
+              with bone levels, caries suspicion and periapical findings.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <button className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-[11px] text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors">
-              View full EMR
-            </button>
-            <button className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-[11px] text-slate-200 hover:border-emerald-400 hover:text-emerald-100 transition-colors">
-              Radiology timeline
-            </button>
-            <Link
-              href="/specialties"
-              className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-[11px] text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors"
-            >
-              ← Back to Specialties Universe
-            </Link>
-          </div>
+          <Link
+            href="/specialties"
+            className="rounded-full border border-slate-700 bg-slate-900/70 px-4 py-1.5 text-xs md:text-sm text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors"
+          >
+            ← Back to Specialties Universe
+          </Link>
         </header>
 
-        {/* BARRA ESTÁNDAR ADIE: BACK, SAVE, DASHBOARD, ETC. */}
-        <SpecialtyTopActions specialtyLabel="Radiology · Imaging & ADIE AI" />
-
         {/* Context */}
-        <div className="mt-4">
-          <Card
-            title="Radiology Context"
-            subtitle="Link the study to a patient, visit and imaging modality."
-            badge="Meta"
-          >
-            <div className="grid gap-4 md:grid-cols-4">
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Patient (link EMR)
-                </label>
-                <button className="w-full rounded-full border border-sky-500/70 bg-sky-500/10 px-3 py-2 text-[11px] font-semibold text-sky-100 hover:bg-sky-500/20 transition">
-                  Select patient from EMR
-                </button>
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Radiology study ID
-                </label>
-                <Input placeholder="ADIE-RAD-0001" />
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Modality
-                </label>
-                <Select defaultValue="">
-                  <option value="">Select…</option>
-                  <option>Intraoral periapical</option>
-                  <option>Bitewing</option>
-                  <option>Panoramic</option>
-                  <option>CBCT volume (screenshot)</option>
-                  <option>Cephalometric</option>
-                  <option>Other dental imaging</option>
-                </Select>
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-slate-300">
-                  Region of interest
-                </label>
-                <Select defaultValue="">
-                  <option value="">Select…</option>
-                  <option>Anterior maxilla</option>
-                  <option>Posterior maxilla</option>
-                  <option>Anterior mandible</option>
-                  <option>Posterior mandible</option>
-                  <option>Full arch</option>
-                  <option>Multiple regions</option>
-                </Select>
-              </div>
+        <Card
+          title="Radiology Context"
+          subtitle="Link the study to a patient, visit and imaging modality."
+          badge="Meta"
+        >
+          <div className="grid gap-4 md:grid-cols-4">
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                Patient (link EMR)
+              </label>
+              <button className="w-full rounded-full border border-sky-500/70 bg-sky-500/10 px-3 py-2 text-[11px] font-semibold text-sky-100 hover:bg-sky-500/20 transition">
+                Select patient from EMR
+              </button>
             </div>
-          </Card>
-        </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                Radiology study ID
+              </label>
+              <Input placeholder="ADIE-RAD-0001" />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                Modality
+              </label>
+              <Select defaultValue="">
+                <option value="">Select…</option>
+                <option>Intraoral periapical</option>
+                <option>Bitewing</option>
+                <option>Panoramic</option>
+                <option>CBCT volume (screenshot)</option>
+                <option>Cephalometric</option>
+                <option>Other dental imaging</option>
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-slate-300">
+                Region of interest
+              </label>
+              <Select defaultValue="">
+                <option value="">Select…</option>
+                <option>Anterior maxilla</option>
+                <option>Posterior maxilla</option>
+                <option>Anterior mandible</option>
+                <option>Posterior mandible</option>
+                <option>Full arch</option>
+                <option>Multiple regions</option>
+              </Select>
+            </div>
+          </div>
+        </Card>
 
         {/* Main grid */}
         <div className="mt-6 grid gap-5 lg:grid-cols-[1.5fr,1.5fr]">
@@ -369,13 +356,13 @@ export default function RadiologyPage() {
               <div className="grid gap-3 md:grid-cols-2 text-[11px]">
                 <div className="space-y-2">
                   <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300 mb-1">
                       Bone level (AI)
                     </p>
                     <p className="text-slate-200">{aiResult.boneLevel}</p>
                   </div>
                   <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300 mb-1">
                       Caries suspicion (AI)
                     </p>
                     <p className="text-slate-200">{aiResult.cariesRisk}</p>
@@ -383,7 +370,7 @@ export default function RadiologyPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300 mb-1">
                       Periapical / endodontic findings (AI)
                     </p>
                     <p className="text-slate-200">
@@ -391,7 +378,7 @@ export default function RadiologyPage() {
                     </p>
                   </div>
                   <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-300">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-300 mb-1">
                       Periodontal / other (AI)
                     </p>
                     <p className="text-slate-200">
