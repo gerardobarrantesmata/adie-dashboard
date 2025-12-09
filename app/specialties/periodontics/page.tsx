@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -214,7 +214,9 @@ export default function PerioLayerPage() {
         </header>
 
         {/* BARRA ESTÁNDAR: BACK TO MPR + SAVE & DASHBOARD */}
-        <SpecialtyTopActions specialtyLabel="Periodontics & Regeneration" />
+        <Suspense fallback={null}>
+          <SpecialtyTopActions specialtyLabel="Periodontics & Regeneration" />
+        </Suspense>
 
         {/* HEADER CLÍNICO COMPARTIDO */}
         <section className="mb-4 rounded-3xl border border-slate-800 bg-slate-950/80 px-5 py-3 shadow-[0_24px_80px_rgba(15,23,42,0.95)]">
@@ -492,11 +494,15 @@ export default function PerioLayerPage() {
               <div className="mb-4 flex flex-wrap items-center gap-3 text-[10px]">
                 <div className="flex items-center gap-1">
                   <span className={`h-2 w-2 rounded-full ${riskDotClasses("low")}`} />
-                  <span className="text-slate-400">0–3 mm · Healthy / maintenance</span>
+                  <span className="text-slate-400">
+                    0–3 mm · Healthy / maintenance
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span
-                    className={`h-2 w-2 rounded-full ${riskDotClasses("moderate")}`}
+                    className={`h-2 w-2 rounded-full ${riskDotClasses(
+                      "moderate"
+                    )}`}
                   />
                   <span className="text-slate-400">
                     4–5 mm · Moderate · SRP / local therapy

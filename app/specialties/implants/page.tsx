@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -249,8 +249,8 @@ function PatientSnapshotBar({ level }: { level: GlobalRisk }) {
                 Systemic & medical flags
               </p>
               <p className="text-slate-400">
-                ASA II: controlled hypertension. HbA1c 6.7%. No
-                anticoagulants. Non-smoker. No bisphosphonate history.
+                ASA II: controlled hypertension. HbA1c 6.7%. No anticoagulants.
+                Non-smoker. No bisphosphonate history.
               </p>
             </div>
             <div>
@@ -270,9 +270,27 @@ function PatientSnapshotBar({ level }: { level: GlobalRisk }) {
   );
 }
 
-/* ------------ MAIN PAGE ------------ */
+/* ------------ WRAPPER CON SUSPENSE ------------ */
 
-export default function ImplantsRecordPage() {
+export default function ImplantsRecordPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center">
+          <p className="text-xs text-slate-400">
+            Loading implants 3D planning workspace…
+          </p>
+        </main>
+      }
+    >
+      <ImplantsRecordPageInner />
+    </Suspense>
+  );
+}
+
+/* ------------ MAIN PAGE (INNER) ------------ */
+
+function ImplantsRecordPageInner() {
   const [sites, setSites] = useState<ImplantSite[]>(INITIAL_SITES);
 
   const updateSite = (

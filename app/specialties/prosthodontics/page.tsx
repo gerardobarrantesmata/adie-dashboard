@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -112,7 +112,9 @@ export default function ProsthodonticsLayerPage() {
         </header>
 
         {/* BARRA ESTÁNDAR ADIE: BACK TO MPR + SAVE & DASHBOARD */}
-        <SpecialtyTopActions specialtyLabel="Prosthodontics · Digital Rehab & Lab Intelligence" />
+        <Suspense fallback={null}>
+          <SpecialtyTopActions specialtyLabel="Prosthodontics · Digital Rehab & Lab Intelligence" />
+        </Suspense>
 
         {/* HEADER CLÍNICO COMPARTIDO */}
         <section className="mb-4 rounded-3xl border border-slate-800 bg-slate-950/80 px-5 py-3 shadow-[0_24px_80px_rgba(15,23,42,0.95)]">

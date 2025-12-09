@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -235,9 +235,9 @@ function PatientSnapshotBar({ riskLevel }: { riskLevel: RiskLevel }) {
   );
 }
 
-/* ---------- MAIN PAGE ---------- */
+/* ---------- MAIN PAGE (INNER) ---------- */
 
-export default function OrthodonticsWorkspacePage() {
+function OrthodonticsWorkspacePageInner() {
   const [activePhase, setActivePhase] = useState<OrthoPhase>("Assessment");
 
   // Métricas clínicas clave
@@ -907,10 +907,10 @@ export default function OrthodonticsWorkspacePage() {
           </div>
 
           <Link
-            href="/dashboard"
+            href="/specialties"
             className="rounded-full border border-slate-700 bg-slate-900/70 px-4 py-1.5 text-xs md:text-sm text-slate-200 hover:border-sky-500 hover:text-sky-100 transition-colors"
           >
-            ← Back to Dashboard
+            ← Back to Specialties Universe
           </Link>
         </header>
 
@@ -984,3 +984,25 @@ export default function OrthodonticsWorkspacePage() {
     </main>
   );
 }
+
+/* ---------- OUTER WRAPPER WITH SUSPENSE ---------- */
+
+function OrthodonticsWorkspacePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-950 text-slate-50">
+          <div className="mx-auto max-w-6xl px-4 pb-24 pt-8">
+            <p className="text-xs text-slate-400">
+              Loading orthodontics workspace…
+            </p>
+          </div>
+        </main>
+      }
+    >
+      <OrthodonticsWorkspacePageInner />
+    </Suspense>
+  );
+}
+
+export default OrthodonticsWorkspacePage;

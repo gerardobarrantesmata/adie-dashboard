@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -185,7 +185,9 @@ export default function RadiologyPage() {
         </header>
 
         {/* BARRA ESTÁNDAR ADIE: BACK, SAVE, DASHBOARD, ETC. */}
-        <SpecialtyTopActions specialtyLabel="Radiology · Imaging & ADIE AI" />
+        <Suspense fallback={null}>
+          <SpecialtyTopActions specialtyLabel="Radiology · Imaging & ADIE AI" />
+        </Suspense>
 
         {/* Context */}
         <div className="mt-4">

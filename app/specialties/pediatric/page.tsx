@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -110,7 +110,9 @@ export default function PediaLayerPage() {
         </header>
 
         {/* BARRA ESTÁNDAR: BACK TO MPR + SAVE & DASHBOARD */}
-        <SpecialtyTopActions specialtyLabel="Pediatric Dentistry" />
+        <Suspense fallback={null}>
+          <SpecialtyTopActions specialtyLabel="Pediatric Dentistry" />
+        </Suspense>
 
         {/* HEADER CLÍNICO TIPO ORTHO/IMPLANTS/PERIO */}
         <section className="mb-4 rounded-3xl border border-slate-800 bg-slate-950/80 px-5 py-3 shadow-[0_24px_80px_rgba(15,23,42,0.95)]">

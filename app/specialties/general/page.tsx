@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -91,7 +91,11 @@ function severityClasses(severity: Severity): string {
   return "border-rose-500/70 bg-rose-500/15 text-rose-100";
 }
 
-function SeverityPill(props: { label: string; value: string; severity: Severity }) {
+function SeverityPill(props: {
+  label: string;
+  value: string;
+  severity: Severity;
+}) {
   const { label, value, severity } = props;
   return (
     <span
@@ -260,9 +264,27 @@ function PatientSnapshotBar({ level }: { level: GlobalRisk }) {
   );
 }
 
-/* ------------ MAIN PAGE ------------ */
+/* ------------ WRAPPER CON SUSPENSE ------------ */
 
-export default function GeneralDentistryRecordPage() {
+export default function GeneralDentistryPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center">
+          <p className="text-xs text-slate-400">
+            Loading general dentistry advanced record…
+          </p>
+        </main>
+      }
+    >
+      <GeneralDentistryRecordPageInner />
+    </Suspense>
+  );
+}
+
+/* ------------ MAIN PAGE (INNER) ------------ */
+
+function GeneralDentistryRecordPageInner() {
   const [cariesRisk, setCariesRisk] = useState<CariesRisk>("moderate");
   const [perioStatus, setPerioStatus] = useState<PerioStatus>("initial");
   const [painScore, setPainScore] = useState<number>(4);

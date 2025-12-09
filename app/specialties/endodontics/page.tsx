@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -238,7 +238,30 @@ function formatDateTime(iso: string) {
   } as Intl.DateTimeFormatOptions);
 }
 
-export default function EndodonticsWowPage() {
+/**
+ * Wrapper con Suspense – este es el export default que Next.js va a usar
+ * y dentro rendereamos el workspace completo de Endo.
+ */
+export default function EndodonticsPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center">
+          <p className="text-xs text-slate-400">
+            Loading endodontics workspace…
+          </p>
+        </div>
+      }
+    >
+      <EndodonticsWowPage />
+    </Suspense>
+  );
+}
+
+/**
+ * Componente principal original del módulo de Endodoncia
+ */
+function EndodonticsWowPage() {
   const [tooth, setTooth] = useState("16");
   const [arch, setArch] = useState("Maxilla");
   const [region, setRegion] = useState("Molar");

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { SpecialtyTopActions } from "@/app/_components/SpecialtyTopActions";
 
@@ -72,7 +72,27 @@ function Card(props: {
   );
 }
 
+/* ---------- WRAPPER CON SUSPENSE (REQUERIDO POR useSearchParams) ---------- */
+
 export default function OmsLayerPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center">
+          <p className="text-xs text-slate-400">
+            Loading OMS surgical, anesthesia & implant command center…
+          </p>
+        </main>
+      }
+    >
+      <OmsLayerPageInner />
+    </Suspense>
+  );
+}
+
+/* ------------------ PÁGINA INTERNA REAL ------------------ */
+
+function OmsLayerPageInner() {
   const demoSites = ["18", "28", "38", "48"];
 
   return (
