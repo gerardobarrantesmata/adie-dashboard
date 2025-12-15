@@ -3,14 +3,11 @@
 
 import Link from "next/link";
 
-type WorkspaceStatus = "live";
-
 type Workspace = {
   name: string;
   description: string;
   layerLabel: string;
   href: string;
-  status: WorkspaceStatus;
 };
 
 const clinicalWorkspaces: Workspace[] = [
@@ -19,67 +16,58 @@ const clinicalWorkspaces: Workspace[] = [
     description: "Chief complaint, history, clinical exam & treatment plan.",
     layerLabel: "Layer 3 · Clinical record",
     href: "/specialties/general",
-    status: "live",
   },
   {
     name: "Periodontics",
     description: "Bone, pockets & maintenance linked to dental chart.",
     layerLabel: "Layer 3 · Bone & maintenance",
     href: "/specialties/periodontics",
-    status: "live",
   },
   {
     name: "Endodontics",
     description: "Apex tracking, working length & obturation quality.",
     layerLabel: "Layer 3 · Root canal workspace",
     href: "/specialties/endodontics",
-    status: "live",
   },
   {
     name: "Orthodontics",
     description: "Braces & aligners timeline with growth & TMJ links.",
     layerLabel: "Layer 3 · Braces & aligners",
     href: "/specialties/orthodontics",
-    status: "live",
   },
   {
     name: "Pediatric Dentistry",
     description: "Growth, eruption & prevention connected to vaccines.",
     layerLabel: "Layer 3 · Growth & prevention",
     href: "/specialties/pediatric",
-    status: "live",
   },
   {
     name: "Prosthodontics",
     description: "Crowns, bridges, full-arch and occlusal design.",
     layerLabel: "Layer 3 · Restorative planning",
     href: "/specialties/prosthodontics",
-    status: "live",
   },
   {
     name: "Implants",
     description: "3D planning, bone safety grid & surgery record.",
     layerLabel: "Layer 3 · 3D planning",
     href: "/specialties/implants",
-    status: "live",
   },
   {
     name: "Radiology",
     description: "Imaging uploads linked to AI bone & caries analysis.",
     layerLabel: "Layer 3 · Imaging & AI",
     href: "/specialties/radiology",
-    status: "live",
   },
   {
     name: "Oral & Maxillofacial Surgery",
     description: "Extractions, trauma, orthognathic & hospital cases.",
     layerLabel: "Layer 3 · Surgical hub",
     href: "/specialties/oral-surgery",
-    status: "live",
   },
 ];
 
-function StatusPill() {
+function LivePill() {
   return (
     <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
       Live
@@ -90,7 +78,7 @@ function StatusPill() {
 export default function SpecialtiesUniversePage() {
   return (
     <div className="space-y-6">
-      {/* TOP BAR: title + quick navigation */}
+      {/* TOP BAR */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-[11px] uppercase tracking-[0.28em] text-sky-400">
@@ -126,12 +114,10 @@ export default function SpecialtiesUniversePage() {
           </p>
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
-          <p className="font-semibold text-slate-200 mb-1">
-            Layer 2 · Universe
-          </p>
+          <p className="font-semibold text-slate-200 mb-1">Layer 2 · Universe</p>
           <p className="text-slate-400">
-            This screen: navigate specialties and understand how they link with
-            implants, perio, BI and operations.
+            This screen: navigate specialties and understand how they link
+            with implants, perio, BI and operations.
           </p>
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
@@ -139,8 +125,8 @@ export default function SpecialtiesUniversePage() {
             Layer 3 · Workspaces
           </p>
           <p className="text-slate-400">
-            Deep clinical modules for each specialty. Data will flow to Daily BI
-            and financial analytics.
+            Deep clinical modules for each specialty. Data will flow to Daily
+            BI and financial analytics.
           </p>
         </div>
       </section>
@@ -154,17 +140,14 @@ export default function SpecialtiesUniversePage() {
             </p>
             <p className="text-[11px] text-slate-500 mt-1">
               Click any tile to open the layer 3 workspace for that specialty.
-              Later these will sync with the unified dental chart.
             </p>
           </div>
 
-          {/* ✅ Solo Live */}
-          <div className="flex items-center gap-2 text-[10px]">
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-[2px] text-emerald-200 border border-emerald-500/40">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Live
-            </span>
-          </div>
+          {/* SOLO LIVE */}
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-[2px] text-emerald-200 border border-emerald-500/40 text-[10px]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Live
+          </span>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -182,9 +165,7 @@ export default function SpecialtiesUniversePage() {
                     {ws.description}
                   </p>
                 </div>
-
-                {/* ✅ Siempre Live verde */}
-                <StatusPill />
+                <LivePill />
               </div>
 
               <div className="mt-2 flex items-center justify-between text-[11px]">
@@ -206,18 +187,9 @@ export default function SpecialtiesUniversePage() {
       <section className="rounded-3xl border border-slate-800 bg-slate-950/80 px-4 py-4 md:px-5 md:py-4 text-[11px] text-slate-300">
         <p className="font-semibold mb-1.5">Integration roadmap</p>
         <ul className="space-y-1 text-slate-400">
-          <li>
-            • Short term: connect Perio, Endo, Implants and Radiology to the
-            ADIE database and BI dashboards.
-          </li>
-          <li>
-            • Mid term: unify all specialty timelines into a single Global
-            Dental Chart view for each patient.
-          </li>
-          <li>
-            • Long term: open the ADIE Ecosystem for inter-consultation and
-            referrals between clinics.
-          </li>
+          <li>• Short term: connect modules to ADIE database and BI dashboards.</li>
+          <li>• Mid term: unify all specialty timelines into Global Dental Chart.</li>
+          <li>• Long term: inter-consultation and referrals between clinics.</li>
         </ul>
       </section>
     </div>
