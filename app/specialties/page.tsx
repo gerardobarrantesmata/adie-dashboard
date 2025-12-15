@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 
-type WorkspaceStatus = "live" | "beta" | "coming";
+type WorkspaceStatus = "live";
 
 type Workspace = {
   name: string;
@@ -33,76 +33,56 @@ const clinicalWorkspaces: Workspace[] = [
     description: "Apex tracking, working length & obturation quality.",
     layerLabel: "Layer 3 · Root canal workspace",
     href: "/specialties/endodontics",
-    status: "beta",
+    status: "live",
   },
   {
     name: "Orthodontics",
-    description:
-      "Braces & aligners timeline with growth & TMJ links.",
+    description: "Braces & aligners timeline with growth & TMJ links.",
     layerLabel: "Layer 3 · Braces & aligners",
     href: "/specialties/orthodontics",
     status: "live",
   },
   {
     name: "Pediatric Dentistry",
-    description:
-      "Growth, eruption & prevention connected to vaccines.",
+    description: "Growth, eruption & prevention connected to vaccines.",
     layerLabel: "Layer 3 · Growth & prevention",
     href: "/specialties/pediatric",
-    status: "beta",
+    status: "live",
   },
   {
     name: "Prosthodontics",
-    description:
-      "Crowns, bridges, full-arch and occlusal design.",
+    description: "Crowns, bridges, full-arch and occlusal design.",
     layerLabel: "Layer 3 · Restorative planning",
     href: "/specialties/prosthodontics",
-    status: "coming",
+    status: "live",
   },
   {
     name: "Implants",
-    description:
-      "3D planning, bone safety grid & surgery record.",
+    description: "3D planning, bone safety grid & surgery record.",
     layerLabel: "Layer 3 · 3D planning",
     href: "/specialties/implants",
     status: "live",
   },
   {
     name: "Radiology",
-    description:
-      "Imaging uploads linked to AI bone & caries analysis.",
+    description: "Imaging uploads linked to AI bone & caries analysis.",
     layerLabel: "Layer 3 · Imaging & AI",
     href: "/specialties/radiology",
     status: "live",
   },
   {
     name: "Oral & Maxillofacial Surgery",
-    description:
-      "Extractions, trauma, orthognathic & hospital cases.",
+    description: "Extractions, trauma, orthognathic & hospital cases.",
     layerLabel: "Layer 3 · Surgical hub",
     href: "/specialties/oral-surgery",
-    status: "coming",
+    status: "live",
   },
 ];
 
-function StatusPill({ status }: { status: WorkspaceStatus }) {
-  if (status === "live") {
-    return (
-      <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
-        Live
-      </span>
-    );
-  }
-  if (status === "beta") {
-    return (
-      <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">
-        Beta
-      </span>
-    );
-  }
+function StatusPill() {
   return (
-    <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200">
-      Coming soon
+    <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+      Live
     </span>
   );
 }
@@ -139,9 +119,7 @@ export default function SpecialtiesUniversePage() {
       {/* LAYERS SUMMARY */}
       <section className="grid gap-3 md:grid-cols-3 text-[11px]">
         <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
-          <p className="font-semibold text-slate-200 mb-1">
-            Layer 1 · EMR
-          </p>
+          <p className="font-semibold text-slate-200 mb-1">Layer 1 · EMR</p>
           <p className="text-slate-400">
             Patient registry, risk flags and clinical history coming from
             Patients.
@@ -152,8 +130,8 @@ export default function SpecialtiesUniversePage() {
             Layer 2 · Universe
           </p>
           <p className="text-slate-400">
-            This screen: navigate specialties and understand how they link
-            with implants, perio, BI and operations.
+            This screen: navigate specialties and understand how they link with
+            implants, perio, BI and operations.
           </p>
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
@@ -161,8 +139,8 @@ export default function SpecialtiesUniversePage() {
             Layer 3 · Workspaces
           </p>
           <p className="text-slate-400">
-            Deep clinical modules for each specialty. Data will flow to Daily
-            BI and financial analytics.
+            Deep clinical modules for each specialty. Data will flow to Daily BI
+            and financial analytics.
           </p>
         </div>
       </section>
@@ -175,22 +153,16 @@ export default function SpecialtiesUniversePage() {
               Clinical workspaces
             </p>
             <p className="text-[11px] text-slate-500 mt-1">
-              Click any tile to open the layer 3 workspace for that
-              specialty. Later these will sync with the unified dental chart.
+              Click any tile to open the layer 3 workspace for that specialty.
+              Later these will sync with the unified dental chart.
             </p>
           </div>
+
+          {/* ✅ Solo Live */}
           <div className="flex items-center gap-2 text-[10px]">
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-[2px] text-emerald-200 border border-emerald-500/40">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Live
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-[2px] text-sky-200 border border-sky-500/40">
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-              Beta
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-[2px] text-amber-100 border border-amber-500/40">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
-              Coming
             </span>
           </div>
         </div>
@@ -210,7 +182,9 @@ export default function SpecialtiesUniversePage() {
                     {ws.description}
                   </p>
                 </div>
-                <StatusPill status={ws.status} />
+
+                {/* ✅ Siempre Live verde */}
+                <StatusPill />
               </div>
 
               <div className="mt-2 flex items-center justify-between text-[11px]">

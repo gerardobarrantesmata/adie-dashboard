@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 
 /* ---------- Sidebar Nav Item ---------- */
@@ -33,7 +33,7 @@ type Patient = {
   id: string;
   adieId: string;
   name: string;
-  dob: string;
+  dob: string; // MM/DD/YYYY
   countryCity: string;
   phone: string;
   email: string;
@@ -133,9 +133,59 @@ const PATIENTS: Patient[] = [
   },
 ];
 
+/* ---------- helpers ---------- */
+
+function norm(s: string) {
+  return s.toLowerCase().trim();
+}
+
+// Convierte "MM/DD/YYYY" -> "YYYY-MM-DD" (para comparar con <input type="date">)
+function dobToISO(mmddyyyy: string) {
+  const parts = mmddyyyy.split("/");
+  if (parts.length !== 3) return "";
+  const [mm, dd, yyyy] = parts;
+  const m = String(mm).padStart(2, "0");
+  const d = String(dd).padStart(2, "0");
+  return `${yyyy}-${m}-${d}`;
+}
+
 /* ---------- PAGE ---------- */
 
 export default function PatientsPage() {
+  // 🔎 filtros (definitivo: ya no duplicamos "by name")
+  const [qAny, setQAny] = useState("");
+  const [qName, setQName] = useState("");
+  const [qDob, setQDob] = useState(""); // YYYY-MM-DD
+  const [qAdie, setQAdie] = useState("");
+
+  const filtered = useMemo(() => {
+    const any = norm(qAny);
+    const name = norm(qName);
+    const adie = norm(qAdie);
+    const dob = qDob;
+
+    return PATIENTS.filter((p) => {
+      // 1) Global search
+      if (any) {
+        const haystack = norm(
+          `${p.name} ${p.adieId} ${p.email} ${p.phone} ${p.countryCity} ${p.language}`
+        );
+        if (!haystack.includes(any)) return false;
+      }
+
+      // 2) Name
+      if (name && !norm(p.name).includes(name)) return false;
+
+      // 3) DOB exact match (date picker)
+      if (dob && dobToISO(p.dob) !== dob) return false;
+
+      // 4) ADIE ID
+      if (adie && !norm(p.adieId).includes(adie)) return false;
+
+      return true;
+    });
+  }, [qAny, qName, qDob, qAdie]);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 flex">
       {/* Sidebar ADIE */}
@@ -173,7 +223,7 @@ export default function PatientsPage() {
       {/* Layout central */}
       <div className="flex-1 flex flex-col">
         {/* Top bar */}
-        <header className="h-16 border-b border-slate-800 bg-slate-950/70 backdrop-blur flex items-center justify-between px-4 md:px-6">
+        <header className="relative h-16 border-b border-slate-800 bg-slate-950/70 backdrop-blur flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline-block text-[10px] font-semibold tracking-[0.18em] uppercase text-slate-500">
               Registry
@@ -181,25 +231,28 @@ export default function PatientsPage() {
             <h1 className="text-base md:text-lg font-semibold">Patients</h1>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
+          {/* ✅ NEW PATIENT centrado (visible) en desktop */}
+          <Link
+            href="/patients/new"
+            className="inline-flex items-center rounded-full bg-sky-500 px-5 py-2 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition
+                       md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+          >
+            New patient
+          </Link>
+
+          {/* Acciones derecha (para que no choque con el botón centrado, se muestran en lg) */}
+          <div className="hidden lg:flex items-center gap-2 text-xs">
             <Link
               href="/specialties"
-              className="hidden sm:inline-flex items-center rounded-full border border-slate-700 px-3 py-1 hover:border-sky-400"
+              className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 hover:border-sky-400"
             >
               Specialties
             </Link>
             <Link
               href="/patients"
-              className="hidden sm:inline-flex items-center rounded-full border border-slate-700 px-3 py-1 hover:border-sky-400"
+              className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 hover:border-sky-400"
             >
               Existing patients
-            </Link>
-            {/* 👉 AHORA SÍ FUNCIONA: lleva a /patients/new */}
-            <Link
-              href="/patients/new"
-              className="inline-flex items-center rounded-full bg-sky-500 px-4 py-1.5 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition"
-            >
-              New patient
             </Link>
           </div>
         </header>
@@ -226,27 +279,74 @@ export default function PatientsPage() {
                       Patient search
                     </p>
                     <input
+                      value={qAny}
+                      onChange={(e) => setQAny(e.target.value)}
                       className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-100 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/60"
-                      placeholder="Type a name to filter the registry..."
+                      placeholder="Type anything to filter (name, email, phone, city...)"
                     />
                   </div>
+
+                  {/* ✅ YA NO REPETIMOS "by name": ahora DOB */}
                   <div>
                     <p className="text-[11px] text-slate-400 mb-1">
-                      Search by name
+                      Search by date of birth
                     </p>
                     <input
+                      type="date"
+                      value={qDob}
+                      onChange={(e) => setQDob(e.target.value)}
                       className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-100 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/60"
-                      placeholder="e.g. Juan, Guzmán…"
                     />
+                    <p className="mt-1 text-[10px] text-slate-500">
+                      Tip: pick a date to match exactly.
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-[11px] text-slate-400 mb-1">
                       Search by ADIE ID
                     </p>
                     <input
+                      value={qAdie}
+                      onChange={(e) => setQAdie(e.target.value)}
                       className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-100 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/60"
                       placeholder="e.g. ADIE-PT-0001"
                     />
+                  </div>
+                </div>
+
+                {/* Extra: filtro por nombre (opcional pero útil, no duplica) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-[11px] text-slate-400 mb-1">
+                      Search by name
+                    </p>
+                    <input
+                      value={qName}
+                      onChange={(e) => setQName(e.target.value)}
+                      className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-100 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/60"
+                      placeholder="e.g. Juan, Guzmán…"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex items-end gap-2">
+                    <button
+                      onClick={() => {
+                        setQAny("");
+                        setQName("");
+                        setQDob("");
+                        setQAdie("");
+                      }}
+                      className="rounded-full border border-slate-700 px-3 py-2 text-[11px] text-slate-200 hover:border-sky-400"
+                    >
+                      Clear filters
+                    </button>
+                    <p className="text-[11px] text-slate-500">
+                      Showing{" "}
+                      <span className="text-slate-200 font-semibold">
+                        {filtered.length}
+                      </span>{" "}
+                      patient(s)
+                    </p>
                   </div>
                 </div>
               </div>
@@ -256,7 +356,7 @@ export default function PatientsPage() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
-                      Epidemiology view · {PATIENTS.length} patients
+                      Epidemiology view · {filtered.length} patients
                     </p>
                   </div>
                 </div>
@@ -275,37 +375,45 @@ export default function PatientsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {PATIENTS.map((p, idx) => (
+                      {filtered.map((p, idx) => (
                         <tr
                           key={p.id}
                           className={`border-b border-slate-850/50 last:border-0 ${
                             idx % 2 === 0 ? "bg-slate-900/60" : "bg-slate-900/30"
                           } hover:bg-slate-800/60 transition`}
                         >
-                          <td className="py-2 pr-4 text-sky-300">
-                            {/* futuro: link a EMR del paciente */}
-                            {p.name}
+                          <td className="py-2 pr-4">
+                            {/* ✅ Link recuperado al expediente */}
+                            <Link
+                              href={`/patients/${p.id}`}
+                              className="text-sky-300 hover:text-sky-200 hover:underline"
+                            >
+                              {p.name}
+                            </Link>
                           </td>
-                          <td className="py-2 pr-4 text-slate-200">
-                            {p.adieId}
-                          </td>
-                          <td className="py-2 pr-4 text-slate-300">
-                            {p.dob}
-                          </td>
+                          <td className="py-2 pr-4 text-slate-200">{p.adieId}</td>
+                          <td className="py-2 pr-4 text-slate-300">{p.dob}</td>
                           <td className="py-2 pr-4 text-slate-300">
                             {p.countryCity}
                           </td>
-                          <td className="py-2 pr-4 text-slate-300">
-                            {p.phone}
-                          </td>
-                          <td className="py-2 pr-4 text-slate-300">
-                            {p.email}
-                          </td>
+                          <td className="py-2 pr-4 text-slate-300">{p.phone}</td>
+                          <td className="py-2 pr-4 text-slate-300">{p.email}</td>
                           <td className="py-2 pr-4 text-slate-300">
                             {p.language}
                           </td>
                         </tr>
                       ))}
+
+                      {filtered.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="py-6 text-center text-slate-400"
+                          >
+                            No patients match the current filters.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -337,7 +445,7 @@ export default function PatientsPage() {
                 Registry KPIs
               </p>
               <ul className="space-y-1 text-slate-200">
-                <li>• 9 pilot patients loaded (mock).</li>
+                <li>• {filtered.length} patient(s) currently visible.</li>
                 <li>• Ready to connect to patients table in Postgres.</li>
                 <li>• Will feed BI dashboards &amp; cohort selection.</li>
               </ul>
