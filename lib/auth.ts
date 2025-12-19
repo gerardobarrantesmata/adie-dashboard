@@ -1,1 +1,1 @@
-export * from "./auth_legacy";
+export * from "./odontogram/auth_legacy";

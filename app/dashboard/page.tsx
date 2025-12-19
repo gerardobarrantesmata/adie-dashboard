@@ -229,13 +229,13 @@ export default function Home() {
             Calendar
           </NavItem>
 
-          <NavItem href="#" theme={theme}>
+          <NavItem href="odontogram" theme={theme}>
             Dental Chart
           </NavItem>
-          <NavItem href="#" theme={theme}>
+          <NavItem href="radiology" theme={theme}>
             Radiology
           </NavItem>
-          <NavItem href="#" theme={theme}>
+          <NavItem href="Pharmacy" theme={theme}>
             Pharmacy
           </NavItem>
 
@@ -246,10 +246,10 @@ export default function Home() {
           <p className="px-3 pt-4 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase mb-2">
             Analytics
           </p>
-          <NavItem href="#" theme={theme}>
+          <NavItem href="Daily Bi" theme={theme}>
             Daily BI
           </NavItem>
-          <NavItem href="#" theme={theme}>
+          <NavItem href="Financial" theme={theme}>
             Financial
           </NavItem>
           <NavItem href="#" theme={theme}>

@@ -47,12 +47,12 @@ export default function NewPatientLayout({ children }: Props) {
             Main
           </p>
 
-          <NavItem href="/dashboard" label="Dashboard" />
+          <NavItem href="/" label="Dashboard" />
           <NavItem href="/specialties" label="Specialties" />
           <NavItem href="/patients" label="Patients" />
           <NavItem href="/calendar" label="Calendar" />
 
-          <NavItem href="#" label="Dental Chart" />
+          <NavItem href="/odontogram" label="Dental Chart" />
           <NavItem href="#" label="Radiology" />
           <NavItem href="#" label="Pharmacy" />
           <NavItem href="#" label="Operations Hub" />
