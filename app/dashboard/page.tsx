@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { RightRail } from "@/app/_components/RightRail";
 
 type Theme = "dark" | "light";
 
@@ -124,18 +125,13 @@ export default function Home() {
   const dark = theme === "dark";
 
   // Dynamic visits-by-hour state
-  const [hourCounts, setHourCounts] = useState<number[]>(
-    Array(BUCKETS).fill(0)
-  );
+  const [hourCounts, setHourCounts] = useState<number[]>(Array(BUCKETS).fill(0));
   const [visitsLoading, setVisitsLoading] = useState<boolean>(true);
 
   const toggleTheme = () =>
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 
-  const fallbackMock = useMemo(
-    () => [10, 25, 40, 35, 55, 50, 30, 20, 15, 10, 8, 5],
-    []
-  );
+  const fallbackMock = useMemo(() => [10, 25, 40, 35, 55, 50, 30, 20, 15, 10, 8, 5], []);
 
   const hourHeights = useMemo(() => {
     const max = Math.max(...hourCounts, 0);
@@ -153,10 +149,9 @@ export default function Home() {
 
     try {
       const date = todayISO();
-      const res = await fetch(
-        `/api/appointments?date=${encodeURIComponent(date)}`,
-        { cache: "no-store" }
-      );
+      const res = await fetch(`/api/appointments?date=${encodeURIComponent(date)}`, {
+        cache: "no-store",
+      });
       if (!res.ok) throw new Error("appointments_api_not_ok");
 
       const data = await res.json();
@@ -201,9 +196,7 @@ export default function Home() {
             AD
           </div>
           <div className="ml-3">
-            <p className="text-xs uppercase tracking-[0.15em] text-slate-400">
-              ADIE
-            </p>
+            <p className="text-xs uppercase tracking-[0.15em] text-slate-400">ADIE</p>
             <p className="text-sm font-semibold">Astra Dental Intelligence</p>
             <div className="text-[10px] tracking-[0.28em] uppercase text-slate-400/90">
               EcoSystem
@@ -229,13 +222,13 @@ export default function Home() {
             Calendar
           </NavItem>
 
-          <NavItem href="odontogram" theme={theme}>
+          <NavItem href="/odontogram" theme={theme}>
             Dental Chart
           </NavItem>
-          <NavItem href="radiology" theme={theme}>
+          <NavItem href="/radiology" theme={theme}>
             Radiology
           </NavItem>
-          <NavItem href="Pharmacy" theme={theme}>
+          <NavItem href="/pharmacy" theme={theme}>
             Pharmacy
           </NavItem>
 
@@ -246,10 +239,10 @@ export default function Home() {
           <p className="px-3 pt-4 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase mb-2">
             Analytics
           </p>
-          <NavItem href="Daily Bi" theme={theme}>
+          <NavItem href="/daily-bi" theme={theme}>
             Daily BI
           </NavItem>
-          <NavItem href="Financial" theme={theme}>
+          <NavItem href="/financial" theme={theme}>
             Financial
           </NavItem>
           <NavItem href="#" theme={theme}>
@@ -326,7 +319,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* ✅ Cards limpias: solo label + número + Open */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
                   <StatCard
                     label="Scheduled"
@@ -358,7 +350,6 @@ export default function Home() {
                   />
                 </div>
 
-                {/* Visits by Hour (Today) */}
                 <div className="mt-1">
                   <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 mb-2">
                     Visits by Hour (Today)
@@ -368,19 +359,18 @@ export default function Home() {
                     className="h-28 rounded-xl border border-slate-800 bg-slate-950 flex items-end gap-1 px-3 pb-3"
                     aria-label="Visits by hour chart"
                   >
-                    {(hourHeights.some((v) => v > 0)
-                      ? hourHeights
-                      : fallbackMock
-                    ).map((h, i) => (
-                      <div key={i} className="flex-1 flex flex-col justify-end">
-                        <div
-                          className={`w-full rounded-t-full bg-gradient-to-t from-sky-500 to-emerald-400 ${
-                            visitsLoading ? "opacity-60" : "opacity-100"
-                          }`}
-                          style={{ height: `${h}%` }}
-                        />
-                      </div>
-                    ))}
+                    {(hourHeights.some((v) => v > 0) ? hourHeights : fallbackMock).map(
+                      (h, i) => (
+                        <div key={i} className="flex-1 flex flex-col justify-end">
+                          <div
+                            className={`w-full rounded-t-full bg-gradient-to-t from-sky-500 to-emerald-400 ${
+                              visitsLoading ? "opacity-60" : "opacity-100"
+                            }`}
+                            style={{ height: `${h}%` }}
+                          />
+                        </div>
+                      )
+                    )}
                   </div>
 
                   <div className="flex justify-between text-[10px] text-slate-500 mt-1.5 px-1">
@@ -393,7 +383,6 @@ export default function Home() {
                 </div>
               </section>
 
-              {/* Patients by specialty */}
               <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -426,19 +415,13 @@ export default function Home() {
               </section>
             </div>
 
-            {/* KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <MiniKpi label="Active Patients" value="248" sub="+18 this month" />
               <MiniKpi label="Visits (30 days)" value="162" sub="On track" />
               <MiniKpi label="Total Procedures" value="459" sub="Clinical" />
-              <MiniKpi
-                label="Implants in progress"
-                value="32"
-                sub="Across 3 clinics"
-              />
+              <MiniKpi label="Implants in progress" value="32" sub="Across 3 clinics" />
             </div>
 
-            {/* Third row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5">
                 <div className="flex items-center justify-between mb-3">
@@ -450,31 +433,11 @@ export default function Home() {
                   </button>
                 </div>
                 <div className="space-y-2 text-xs">
-                  <ProcedureRow
-                    name="Adult Prophylaxis &amp; Recall"
-                    count="96"
-                    code="D1110 + exam"
-                  />
-                  <ProcedureRow
-                    name="Composite Restoration"
-                    count="74"
-                    code="D2332 / D2392"
-                  />
-                  <ProcedureRow
-                    name="Root Canal – Molar"
-                    count="31"
-                    code="Endo Mx/Md"
-                  />
-                  <ProcedureRow
-                    name="Implant placement"
-                    count="22"
-                    code="Surgical guide + fixture"
-                  />
-                  <ProcedureRow
-                    name="Clear aligner cases"
-                    count="12"
-                    code="ADIE Ortho Engine"
-                  />
+                  <ProcedureRow name="Adult Prophylaxis &amp; Recall" count="96" code="D1110 + exam" />
+                  <ProcedureRow name="Composite Restoration" count="74" code="D2332 / D2392" />
+                  <ProcedureRow name="Root Canal – Molar" count="31" code="Endo Mx/Md" />
+                  <ProcedureRow name="Implant placement" count="22" code="Surgical guide + fixture" />
+                  <ProcedureRow name="Clear aligner cases" count="12" code="ADIE Ortho Engine" />
                 </div>
               </section>
 
@@ -489,95 +452,18 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <TimelineRow
-                    time="08:00"
-                    patient="María López"
-                    detail="Perio maintenance · Room 2"
-                    badge="PERIO"
-                  />
-                  <TimelineRow
-                    time="09:30"
-                    patient="David Chen"
-                    detail="Implant surgery · AOX planning"
-                    badge="IMPLANT"
-                  />
-                  <TimelineRow
-                    time="11:00"
-                    patient="Ana Rodríguez"
-                    detail="Ortho aligner check · Set 6/24"
-                    badge="ORTHO"
-                  />
-                  <TimelineRow
-                    time="14:00"
-                    patient="Carlos Vega"
-                    detail="Emergency – pain UR6"
-                    badge="EMERGENCY"
-                  />
-                  <TimelineRow
-                    time="16:00"
-                    patient="Gina Park"
-                    detail="Pedo recall &amp; sealants"
-                    badge="PEDIA"
-                  />
+                  <TimelineRow time="08:00" patient="María López" detail="Perio maintenance · Room 2" badge="PERIO" />
+                  <TimelineRow time="09:30" patient="David Chen" detail="Implant surgery · AOX planning" badge="IMPLANT" />
+                  <TimelineRow time="11:00" patient="Ana Rodríguez" detail="Ortho aligner check · Set 6/24" badge="ORTHO" />
+                  <TimelineRow time="14:00" patient="Carlos Vega" detail="Emergency – pain UR6" badge="EMERGENCY" />
+                  <TimelineRow time="16:00" patient="Gina Park" detail="Pedo recall &amp; sealants" badge="PEDIA" />
                 </div>
               </section>
             </div>
           </main>
 
-          {/* Right rail */}
-          <aside
-            className={`w-full lg:w-80 border-t lg:border-t-0 lg:border-l px-4 py-4 space-y-4 ${
-              dark
-                ? "border-slate-800 bg-slate-950/70"
-                : "border-slate-200 bg-slate-50"
-            }`}
-          >
-            <section className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 p-4 space-y-3">
-              <p className="text-xs font-semibold tracking-[0.18em] uppercase text-slate-400">
-                ADIE Assistant
-              </p>
-              <p className="text-sm font-semibold text-slate-50">
-                Smart layer for dental decisions
-              </p>
-              <p className="text-xs text-slate-400">
-                Ask ADIE for medical risks, medication alerts, or a quick patient
-                summary before entering the operatory.
-              </p>
-              <button className="w-full rounded-xl bg-sky-500 py-2 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition">
-                Open Chair-side Chat
-              </button>
-              <p className="text-[10px] text-slate-500">
-                Next step: connect with your ADIE-Postgres database.
-              </p>
-            </section>
-
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3 text-xs">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400">
-                  ADIE Updates
-                </p>
-                <span className="rounded-full bg-emerald-500/15 text-emerald-300 px-2 py-0.5 text-[10px]">
-                  Beta
-                </span>
-              </div>
-              <ul className="space-y-2 text-slate-200">
-                <li>• Perio pockets chart v2 connected to patient_tooth_chart.</li>
-                <li>• Endo apex tracker ready for clinical testing.</li>
-                <li>• Implants module linked with radiology &amp; CBCT.</li>
-              </ul>
-            </section>
-
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3 text-xs">
-              <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400">
-                Help &amp; Guides
-              </p>
-              <div className="space-y-2 text-slate-200">
-                <p>• How to use the daily dashboard.</p>
-                <p>• Check-in flow on tablet for new patients.</p>
-                <p>• Connect ADIE with DBeaver / Postgres in production.</p>
-              </div>
-            </section>
-          </aside>
+          {/* ✅ Right rail (reusable) */}
+          <RightRail dark={dark} />
         </div>
       </div>
     </div>
@@ -617,20 +503,12 @@ function StatCard({ label, value, tone, dark, href }: StatCardProps) {
   const CardInner = (
     <div
       className={`rounded-2xl border px-3 py-3 ${toneClass} ${
-        href
-          ? "cursor-pointer hover:brightness-110 hover:border-white/25 transition"
-          : ""
+        href ? "cursor-pointer hover:brightness-110 hover:border-white/25 transition" : ""
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">
-          {label}
-        </p>
-        {href && (
-          <span className="text-[10px] opacity-70 whitespace-nowrap">
-            Open →
-          </span>
-        )}
+        <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">{label}</p>
+        {href && <span className="text-[10px] opacity-70 whitespace-nowrap">Open →</span>}
       </div>
 
       <p className="text-xl font-semibold leading-none mt-1">{value}</p>
@@ -650,10 +528,7 @@ function BarRow({ label, value, color }: BarRowProps) {
         <span>{value}</span>
       </div>
       <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-        <div
-          className={`h-full ${color}`}
-          style={{ width: `${Math.min(value, 100)}%` }}
-        />
+        <div className={`h-full ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
       </div>
     </div>
   );
@@ -664,9 +539,7 @@ type MiniKpiProps = { label: string; value: string; sub: string };
 function MiniKpi({ label, value, sub }: MiniKpiProps) {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 mb-1">
-        {label}
-      </p>
+      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 mb-1">{label}</p>
       <p className="text-xl font-semibold text-slate-50">{value}</p>
       <p className="text-[11px] text-slate-400 mt-1">{sub}</p>
     </div>
@@ -697,9 +570,9 @@ type TimelineRowProps = {
 };
 
 function TimelineRow({ time, patient, detail, badge }: TimelineRowProps) {
-  const href = `/calendar?from=dashboard&time=${encodeURIComponent(
-    time
-  )}&patient=${encodeURIComponent(patient)}`;
+  const href = `/calendar?from=dashboard&time=${encodeURIComponent(time)}&patient=${encodeURIComponent(
+    patient
+  )}`;
 
   return (
     <Link href={href} className="block">

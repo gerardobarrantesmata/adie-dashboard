@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
+import { RightRail } from "@/app/_components/RightRail";
 
 type AppointmentStatus = "scheduled" | "checked_in" | "completed" | "cancelled";
 type CalendarView = "day" | "week" | "month";
@@ -83,8 +84,6 @@ function formatTimeLabel(date: Date) {
 
 function buildMonthGrid(currentMonth: Date) {
   const start = startOfMonth(currentMonth);
-  const end = endOfMonth(currentMonth);
-
   const startWeekDay = start.getDay();
   const gridStart = addDays(start, -startWeekDay);
 
@@ -140,7 +139,6 @@ const PROVIDERS: Provider[] = [
     color: "bg-sky-400",
     initials: "CG",
   },
-  // La estructura permite fácilmente llegar a 20 doctores
 ];
 
 const MOCK_APPOINTMENTS: Appointment[] = (() => {
@@ -176,9 +174,29 @@ const MOCK_APPOINTMENTS: Appointment[] = (() => {
   }
 
   return [
-    mk(0, 8, 60, "p1", "Juan Pérez", "Periodontics", "scheduled", "Room 2", "Deep scaling UL."),
+    mk(
+      0,
+      8,
+      60,
+      "p1",
+      "Juan Pérez",
+      "Periodontics",
+      "scheduled",
+      "Room 2",
+      "Deep scaling UL."
+    ),
     mk(0, 9, 90, "p2", "María López", "Endodontics", "scheduled", "Room 3", "RCT 2.6"),
-    mk(0, 11, 45, "p5", "Carlos Vega", "General Dentistry", "checked_in", "Room 1", "Emergency pain."),
+    mk(
+      0,
+      11,
+      45,
+      "p5",
+      "Carlos Vega",
+      "General Dentistry",
+      "checked_in",
+      "Room 1",
+      "Emergency pain."
+    ),
     mk(1, 10, 60, "p3", "Ana Rodríguez", "Prosthodontics", "scheduled", "Room 4", "Crown delivery."),
     mk(1, 14, 30, "p4", "David Chen", "Orthodontics", "scheduled", "Room 5", "Aligner check 6/24."),
     mk(-1, 15, 60, "p1", "Laura Park", "Periodontics", "completed", "Room 2", "Post-op control."),
@@ -197,9 +215,7 @@ export default function CalendarPage() {
   const [selectedProviderIds, setSelectedProviderIds] = useState<string[]>(
     PROVIDERS.map((p) => p.id)
   );
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState<
-    string | null
-  >(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
 
   // Quick create
   const [newPatientName, setNewPatientName] = useState("");
@@ -220,9 +236,7 @@ export default function CalendarPage() {
   }, []);
 
   function toggleProvider(id: string) {
-    setSelectedProviderIds((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    );
+    setSelectedProviderIds((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
   }
 
   function goToToday() {
@@ -241,43 +255,24 @@ export default function CalendarPage() {
   }
 
   const visibleAppointments = useMemo(() => {
-    const filtered = appointments.filter((a) =>
-      selectedProviderIds.includes(a.providerId)
-    );
+    const filtered = appointments.filter((a) => selectedProviderIds.includes(a.providerId));
 
     if (view === "day") {
-      return filtered.filter((a) =>
-        isSameDay(new Date(a.startTime), selectedDate)
-      );
+      return filtered.filter((a) => isSameDay(new Date(a.startTime), selectedDate));
     }
 
     if (view === "week") {
       const weekDays = getWeekDays(currentDate).map((d) => formatISODate(d));
-      return filtered.filter((a) =>
-        weekDays.includes(formatISODate(new Date(a.startTime)))
-      );
+      return filtered.filter((a) => weekDays.includes(formatISODate(new Date(a.startTime))));
     }
 
     // month
-    return filtered.filter((a) =>
-      isSameMonth(new Date(a.startTime), currentDate)
-    );
+    return filtered.filter((a) => isSameMonth(new Date(a.startTime), currentDate));
   }, [appointments, selectedProviderIds, view, selectedDate, currentDate]);
 
-  const monthGrid = useMemo(
-    () => buildMonthGrid(currentDate),
-    [currentDate]
-  );
-
-  const weekDays = useMemo(
-    () => getWeekDays(currentDate),
-    [currentDate]
-  );
-
-  const dayHours = useMemo(
-    () => Array.from({ length: 12 }, (_, i) => 7 + i), // 7:00 - 18:00
-    []
-  );
+  const monthGrid = useMemo(() => buildMonthGrid(currentDate), [currentDate]);
+  const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+  const dayHours = useMemo(() => Array.from({ length: 12 }, (_, i) => 7 + i), []);
 
   function handleCreateAppointment(e: React.FormEvent) {
     e.preventDefault();
@@ -309,8 +304,6 @@ export default function CalendarPage() {
       notes: newNotes.trim() || undefined,
     };
 
-    // ⚠️ Por ahora solo mostramos cómo quedaría: en producción vendrá de la BD
-    // Si quieres que también se vea en pantalla, sería setAppointments([...])
     alert(
       `Demo only – this will be saved to Postgres via /api/appointments.\n\n${appt.patientName} · ${provider?.name} · ${formatTimeLabel(
         start
@@ -334,16 +327,14 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 flex">
-      {/* Sidebar principal ADIE (igual estilo que dashboard, pero compacto) */}
+      {/* Sidebar principal ADIE */}
       <aside className="hidden md:flex w-56 flex-col border-r border-slate-800 bg-slate-950/90">
         <div className="h-16 flex items-center px-5 border-b border-slate-800/60">
           <div className="h-9 w-9 rounded-xl bg-sky-500 flex items-center justify-center text-xs font-bold text-slate-950">
             AD
           </div>
           <div className="ml-3">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-              ADIE
-            </p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">ADIE</p>
             <p className="text-sm font-semibold">Scheduling Engine</p>
           </div>
         </div>
@@ -372,9 +363,7 @@ export default function CalendarPage() {
             <span className="hidden sm:inline-block text-[10px] font-semibold tracking-[0.18em] uppercase text-slate-500">
               Calendar
             </span>
-            <h1 className="text-base md:text-lg font-semibold">
-              Multi-doctor Scheduling
-            </h1>
+            <h1 className="text-base md:text-lg font-semibold">Multi-doctor Scheduling</h1>
             <span className="hidden md:inline-flex items-center rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-400">
               {viewLabel} view · {visibleAppointments.length} appointments
             </span>
@@ -385,9 +374,7 @@ export default function CalendarPage() {
               <button
                 onClick={() => setView("day")}
                 className={`px-3 py-1 rounded-full ${
-                  view === "day"
-                    ? "bg-sky-500 text-slate-950"
-                    : "text-slate-300 hover:bg-slate-800"
+                  view === "day" ? "bg-sky-500 text-slate-950" : "text-slate-300 hover:bg-slate-800"
                 }`}
               >
                 Day
@@ -395,9 +382,7 @@ export default function CalendarPage() {
               <button
                 onClick={() => setView("week")}
                 className={`px-3 py-1 rounded-full ${
-                  view === "week"
-                    ? "bg-sky-500 text-slate-950"
-                    : "text-slate-300 hover:bg-slate-800"
+                  view === "week" ? "bg-sky-500 text-slate-950" : "text-slate-300 hover:bg-slate-800"
                 }`}
               >
                 Week
@@ -405,9 +390,7 @@ export default function CalendarPage() {
               <button
                 onClick={() => setView("month")}
                 className={`px-3 py-1 rounded-full ${
-                  view === "month"
-                    ? "bg-sky-500 text-slate-950"
-                    : "text-slate-300 hover:bg-slate-800"
+                  view === "month" ? "bg-sky-500 text-slate-950" : "text-slate-300 hover:bg-slate-800"
                 }`}
               >
                 Month
@@ -435,7 +418,7 @@ export default function CalendarPage() {
           </div>
         </header>
 
-        {/* Contenido principal: filtros + calendario + right rail */}
+        {/* Contenido principal */}
         <div className="flex-1 flex flex-col lg:flex-row">
           {/* Filtros izquierda */}
           <section className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-950/80 px-4 py-4 space-y-4 text-xs">
@@ -458,23 +441,15 @@ export default function CalendarPage() {
                       }`}
                     >
                       <span className="flex items-center gap-2">
-                        <span
-                          className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${p.color}`}
-                        >
+                        <span className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${p.color}`}>
                           {p.initials}
                         </span>
                         <span>
                           <span className="block">{p.name}</span>
-                          <span className="block text-[10px] text-slate-400">
-                            {p.specialty}
-                          </span>
+                          <span className="block text-[10px] text-slate-400">{p.specialty}</span>
                         </span>
                       </span>
-                      <span
-                        className={`h-2 w-2 rounded-full ${
-                          selected ? "bg-emerald-400" : "bg-slate-600"
-                        }`}
-                      />
+                      <span className={`h-2 w-2 rounded-full ${selected ? "bg-emerald-400" : "bg-slate-600"}`} />
                     </button>
                   );
                 })}
@@ -514,15 +489,11 @@ export default function CalendarPage() {
           <main className="flex-1 border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-950/80 px-3 md:px-4 py-4 overflow-auto">
             <header className="mb-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-slate-100">
-                  {monthLabel}
-                </p>
+                <p className="text-xs font-semibold text-slate-100">{monthLabel}</p>
                 <p className="text-[11px] text-slate-400">
                   {view === "day" && "High-resolution schedule for one day."}
-                  {view === "week" &&
-                    "Clinic view for the current week across providers."}
-                  {view === "month" &&
-                    "Monthly occupancy overview (multi-doctor)."}
+                  {view === "week" && "Clinic view for the current week across providers."}
+                  {view === "month" && "Monthly occupancy overview (multi-doctor)."}
                 </p>
               </div>
             </header>
@@ -553,9 +524,7 @@ export default function CalendarPage() {
             {view === "day" && (
               <DayView
                 date={selectedDate}
-                appointments={visibleAppointments.filter((a) =>
-                  isSameDay(new Date(a.startTime), selectedDate)
-                )}
+                appointments={visibleAppointments.filter((a) => isSameDay(new Date(a.startTime), selectedDate))}
                 providersById={providersById}
                 hours={dayHours}
                 onSelectAppointment={(id) => setSelectedAppointmentId(id)}
@@ -563,8 +532,8 @@ export default function CalendarPage() {
             )}
           </main>
 
-          {/* Right rail: detalle del día / cita + quick create */}
-          <aside className="w-full lg:w-80 bg-slate-950/90 border-t lg:border-t-0 border-slate-800 px-4 py-4 space-y-4 text-xs">
+          {/* ✅ Right rail global (Ads + Assistant) + Calendar cards */}
+          <RightRail dark>
             <section className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3 space-y-2">
               <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400">
                 Day overview
@@ -578,9 +547,9 @@ export default function CalendarPage() {
                 })}
               </p>
               <p className="text-[11px] text-slate-400">
-                {visibleAppointments.filter((a) =>
-                  isSameDay(new Date(a.startTime), selectedDate)
-                ).length}{" "}
+                {
+                  visibleAppointments.filter((a) => isSameDay(new Date(a.startTime), selectedDate)).length
+                }{" "}
                 appointment(s) for selected providers.
               </p>
             </section>
@@ -589,34 +558,25 @@ export default function CalendarPage() {
               <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400">
                 Selected appointment
               </p>
+
               {!selectedAppointment && (
                 <p className="text-[11px] text-slate-500">
                   Click on an appointment card to see details here.
                 </p>
               )}
+
               {selectedAppointment && (
                 <div className="space-y-1 text-[11px] text-slate-200">
-                  <p className="text-sm font-semibold">
-                    {selectedAppointment.patientName}
-                  </p>
+                  <p className="text-sm font-semibold">{selectedAppointment.patientName}</p>
                   <p className="text-slate-400">
                     {formatTimeLabel(new Date(selectedAppointment.startTime))} –{" "}
                     {formatTimeLabel(new Date(selectedAppointment.endTime))}
                   </p>
                   <p className="text-slate-400">
-                    {providersById[selectedAppointment.providerId]?.name} ·{" "}
-                    {selectedAppointment.specialty}
+                    {providersById[selectedAppointment.providerId]?.name} · {selectedAppointment.specialty}
                   </p>
-                  {selectedAppointment.room && (
-                    <p className="text-slate-400">
-                      Room: {selectedAppointment.room}
-                    </p>
-                  )}
-                  {selectedAppointment.notes && (
-                    <p className="text-slate-300">
-                      Notes: {selectedAppointment.notes}
-                    </p>
-                  )}
+                  {selectedAppointment.room && <p className="text-slate-400">Room: {selectedAppointment.room}</p>}
+                  {selectedAppointment.notes && <p className="text-slate-300">Notes: {selectedAppointment.notes}</p>}
                   <span className="inline-flex mt-1 rounded-full border border-slate-700 px-2 py-0.5 text-[10px] uppercase">
                     {selectedAppointment.status}
                   </span>
@@ -630,9 +590,7 @@ export default function CalendarPage() {
               </p>
               <form onSubmit={handleCreateAppointment} className="space-y-2">
                 <div>
-                  <label className="block text-[11px] text-slate-300 mb-0.5">
-                    Patient
-                  </label>
+                  <label className="block text-[11px] text-slate-300 mb-0.5">Patient</label>
                   <input
                     value={newPatientName}
                     onChange={(e) => setNewPatientName(e.target.value)}
@@ -640,10 +598,9 @@ export default function CalendarPage() {
                     placeholder="Patient name"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-[11px] text-slate-300 mb-0.5">
-                    Provider
-                  </label>
+                  <label className="block text-[11px] text-slate-300 mb-0.5">Provider</label>
                   <select
                     value={newProviderId}
                     onChange={(e) => setNewProviderId(e.target.value)}
@@ -656,11 +613,10 @@ export default function CalendarPage() {
                     ))}
                   </select>
                 </div>
+
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[11px] text-slate-300 mb-0.5">
-                      Start
-                    </label>
+                    <label className="block text-[11px] text-slate-300 mb-0.5">Start</label>
                     <input
                       type="time"
                       value={newStartTime}
@@ -668,27 +624,23 @@ export default function CalendarPage() {
                       className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-2 py-1 text-[11px] outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/60"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-[11px] text-slate-300 mb-0.5">
-                      Duration (min)
-                    </label>
+                    <label className="block text-[11px] text-slate-300 mb-0.5">Duration (min)</label>
                     <input
                       type="number"
                       min={10}
                       max={480}
                       step={5}
                       value={newDurationMinutes}
-                      onChange={(e) =>
-                        setNewDurationMinutes(Number(e.target.value) || 60)
-                      }
+                      onChange={(e) => setNewDurationMinutes(Number(e.target.value) || 60)}
                       className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-2 py-1 text-[11px] outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-500/60"
                     />
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-[11px] text-slate-300 mb-0.5">
-                    Notes
-                  </label>
+                  <label className="block text-[11px] text-slate-300 mb-0.5">Notes</label>
                   <textarea
                     rows={2}
                     value={newNotes}
@@ -697,19 +649,20 @@ export default function CalendarPage() {
                     placeholder="Short clinical note"
                   />
                 </div>
+
                 <button
                   type="submit"
                   className="w-full rounded-lg border border-sky-500/70 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold text-sky-300 hover:bg-sky-500/20"
                 >
                   (Demo) Add appointment
                 </button>
+
                 <p className="text-[10px] text-slate-500 mt-1">
-                  In production, this will write to Postgres through
-                  /api/appointments.
+                  In production, this will write to Postgres through /api/appointments.
                 </p>
               </form>
             </section>
-          </aside>
+          </RightRail>
         </div>
       </div>
     </div>
@@ -756,6 +709,7 @@ function MonthView({
           </div>
         ))}
       </div>
+
       <div className="grid grid-cols-7 gap-px rounded-xl border border-slate-800 bg-slate-900/60">
         {days.map(({ date, isCurrentMonth }) => {
           const key = formatISODate(date);
@@ -770,9 +724,7 @@ function MonthView({
               onClick={() => onSelectDate(date)}
               className={[
                 "relative flex h-24 flex-col items-start justify-start p-1.5 text-left text-[11px] transition",
-                !isCurrentMonth
-                  ? "bg-slate-900/40 text-slate-600"
-                  : "bg-slate-900/80 text-slate-100",
+                !isCurrentMonth ? "bg-slate-900/40 text-slate-600" : "bg-slate-900/80 text-slate-100",
                 isSelected ? "ring-1 ring-sky-400/80 z-10" : "hover:bg-slate-800",
               ].join(" ")}
             >
@@ -780,35 +732,31 @@ function MonthView({
                 <span
                   className={[
                     "inline-flex h-5 w-5 items-center justify-center rounded-full border text-[10px]",
-                    isToday
-                      ? "border-sky-400 text-sky-300"
-                      : "border-transparent",
+                    isToday ? "border-sky-400 text-sky-300" : "border-transparent",
                   ].join(" ")}
                 >
                   {date.getDate()}
                 </span>
+
                 {dayAppointments.length > 0 && (
                   <span className="rounded-full bg-slate-800 px-1.5 text-[10px] text-slate-200">
                     {dayAppointments.length}
                   </span>
                 )}
               </div>
+
               <div className="mt-1 flex flex-wrap gap-0.5">
                 {dayAppointments.slice(0, 4).map((a) => {
                   const prov = providersById[a.providerId];
                   return (
                     <span
                       key={a.id}
-                      className={`h-2 w-2 rounded-full ${
-                        prov?.color ?? "bg-slate-500"
-                      }`}
+                      className={`h-2 w-2 rounded-full ${prov?.color ?? "bg-slate-500"}`}
                     />
                   );
                 })}
                 {dayAppointments.length > 4 && (
-                  <span className="text-[9px] text-slate-400">
-                    +{dayAppointments.length - 4}
-                  </span>
+                  <span className="text-[9px] text-slate-400">+{dayAppointments.length - 4}</span>
                 )}
               </div>
             </button>
@@ -826,12 +774,7 @@ type WeekViewProps = {
   onSelectAppointment: (id: string) => void;
 };
 
-function WeekView({
-  days,
-  appointments,
-  providersById,
-  onSelectAppointment,
-}: WeekViewProps) {
+function WeekView({ days, appointments, providersById, onSelectAppointment }: WeekViewProps) {
   const byDay = useMemo(() => {
     const map: Record<string, Appointment[]> = {};
     for (const a of appointments) {
@@ -840,10 +783,7 @@ function WeekView({
       map[key].push(a);
     }
     for (const key of Object.keys(map)) {
-      map[key].sort(
-        (a, b) =>
-          new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-      );
+      map[key].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
     }
     return map;
   }, [appointments]);
@@ -860,19 +800,14 @@ function WeekView({
           >
             <div className="flex items-center justify-between mb-1">
               <span className="text-slate-200">
-                {d.toLocaleDateString("en-US", {
-                  weekday: "short",
-                  day: "numeric",
-                })}
+                {d.toLocaleDateString("en-US", { weekday: "short", day: "numeric" })}
               </span>
-              <span className="text-[10px] text-slate-500">
-                {dayAppointments.length} appt.
-              </span>
+              <span className="text-[10px] text-slate-500">{dayAppointments.length} appt.</span>
             </div>
+
             <div className="space-y-1.5 max-h-64 overflow-y-auto">
-              {dayAppointments.length === 0 && (
-                <p className="text-[10px] text-slate-600">No appointments.</p>
-              )}
+              {dayAppointments.length === 0 && <p className="text-[10px] text-slate-600">No appointments.</p>}
+
               {dayAppointments.map((a) => {
                 const prov = providersById[a.providerId];
                 return (
@@ -883,18 +818,10 @@ function WeekView({
                     className="w-full rounded-xl border border-slate-800 bg-slate-900/80 px-2 py-1.5 text-left hover:border-sky-400 hover:bg-slate-900"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] text-slate-400">
-                        {formatTimeLabel(new Date(a.startTime))}
-                      </span>
-                      <span
-                        className={`h-2 w-8 rounded-full ${
-                          prov?.color ?? "bg-slate-500"
-                        }`}
-                      />
+                      <span className="text-[10px] text-slate-400">{formatTimeLabel(new Date(a.startTime))}</span>
+                      <span className={`h-2 w-8 rounded-full ${prov?.color ?? "bg-slate-500"}`} />
                     </div>
-                    <p className="text-[11px] text-slate-100 truncate">
-                      {a.patientName}
-                    </p>
+                    <p className="text-[11px] text-slate-100 truncate">{a.patientName}</p>
                     <p className="text-[10px] text-slate-400 truncate">
                       {prov?.name} · {a.specialty}
                     </p>
@@ -917,13 +844,7 @@ type DayViewProps = {
   onSelectAppointment: (id: string) => void;
 };
 
-function DayView({
-  date,
-  appointments,
-  providersById,
-  hours,
-  onSelectAppointment,
-}: DayViewProps) {
+function DayView({ date, appointments, providersById, hours, onSelectAppointment }: DayViewProps) {
   const byHour = useMemo(() => {
     const map: Record<number, Appointment[]> = {};
     for (const a of appointments) {
@@ -933,10 +854,7 @@ function DayView({
       map[h].push(a);
     }
     for (const h of Object.keys(map)) {
-      map[Number(h)].sort(
-        (a, b) =>
-          new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-      );
+      map[Number(h)].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
     }
     return map;
   }, [appointments]);
@@ -945,30 +863,25 @@ function DayView({
     <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-[11px]">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs text-slate-200">
-          {date.toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
+          {date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
         </p>
-        <p className="text-[10px] text-slate-500">
-          High-resolution timeline · {appointments.length} appt.
-        </p>
+        <p className="text-[10px] text-slate-500">High-resolution timeline · {appointments.length} appt.</p>
       </div>
 
       <div className="max-h-[420px] overflow-y-auto border-t border-slate-800 pt-2">
         {hours.map((h) => {
           const hourLabel = `${h.toString().padStart(2, "0")}:00`;
           const hourAppointments = byHour[h] || [];
+
           return (
             <div key={h} className="flex items-start gap-3 py-1.5">
-              <div className="w-14 text-[10px] text-slate-500 mt-1">
-                {hourLabel}
-              </div>
+              <div className="w-14 text-[10px] text-slate-500 mt-1">{hourLabel}</div>
+
               <div className="flex-1 space-y-1">
                 {hourAppointments.length === 0 && (
                   <div className="h-6 rounded-lg border border-dashed border-slate-800/80 bg-slate-950/40" />
                 )}
+
                 {hourAppointments.map((a) => {
                   const prov = providersById[a.providerId];
                   return (
@@ -979,9 +892,7 @@ function DayView({
                       className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-2 py-1 text-left hover:border-sky-400 hover:bg-slate-900"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-[11px] text-slate-100 truncate">
-                          {a.patientName}
-                        </p>
+                        <p className="text-[11px] text-slate-100 truncate">{a.patientName}</p>
                         <span
                           className={`h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-semibold ${
                             prov?.color ?? "bg-slate-600"
@@ -991,8 +902,7 @@ function DayView({
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 truncate">
-                        {formatTimeLabel(new Date(a.startTime))} –{" "}
-                        {formatTimeLabel(new Date(a.endTime))} ·{" "}
+                        {formatTimeLabel(new Date(a.startTime))} – {formatTimeLabel(new Date(a.endTime))} ·{" "}
                         {prov?.name ?? ""} · {a.specialty}
                       </p>
                     </button>

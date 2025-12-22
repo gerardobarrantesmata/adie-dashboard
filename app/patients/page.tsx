@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
+import { RightRail } from "@/app/_components/RightRail";
 
 /* ---------- Sidebar Nav Item ---------- */
 
@@ -152,7 +153,9 @@ function dobToISO(mmddyyyy: string) {
 /* ---------- PAGE ---------- */
 
 export default function PatientsPage() {
-  // 🔎 filtros (definitivo: ya no duplicamos "by name")
+  const dark = true; // Patients page actualmente es dark fijo
+
+  // 🔎 filtros
   const [qAny, setQAny] = useState("");
   const [qName, setQName] = useState("");
   const [qDob, setQDob] = useState(""); // YYYY-MM-DD
@@ -165,7 +168,6 @@ export default function PatientsPage() {
     const dob = qDob;
 
     return PATIENTS.filter((p) => {
-      // 1) Global search
       if (any) {
         const haystack = norm(
           `${p.name} ${p.adieId} ${p.email} ${p.phone} ${p.countryCity} ${p.language}`
@@ -173,13 +175,10 @@ export default function PatientsPage() {
         if (!haystack.includes(any)) return false;
       }
 
-      // 2) Name
       if (name && !norm(p.name).includes(name)) return false;
 
-      // 3) DOB exact match (date picker)
       if (dob && dobToISO(p.dob) !== dob) return false;
 
-      // 4) ADIE ID
       if (adie && !norm(p.adieId).includes(adie)) return false;
 
       return true;
@@ -231,7 +230,6 @@ export default function PatientsPage() {
             <h1 className="text-base md:text-lg font-semibold">Patients</h1>
           </div>
 
-          {/* ✅ NEW PATIENT centrado (visible) en desktop */}
           <Link
             href="/patients/new"
             className="inline-flex items-center rounded-full bg-sky-500 px-5 py-2 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition
@@ -240,7 +238,6 @@ export default function PatientsPage() {
             New patient
           </Link>
 
-          {/* Acciones derecha (para que no choque con el botón centrado, se muestran en lg) */}
           <div className="hidden lg:flex items-center gap-2 text-xs">
             <Link
               href="/specialties"
@@ -261,7 +258,6 @@ export default function PatientsPage() {
         <div className="flex-1 flex flex-col lg:flex-row">
           {/* Main content */}
           <main className="flex-1 px-4 md:px-8 py-5 space-y-5 overflow-auto">
-            {/* Buscadores y descripción */}
             <section className="max-w-6xl mx-auto space-y-4">
               <div>
                 <p className="text-xs text-slate-300">
@@ -271,7 +267,6 @@ export default function PatientsPage() {
                 </p>
               </div>
 
-              {/* Search bar row */}
               <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3 text-xs">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
@@ -286,7 +281,6 @@ export default function PatientsPage() {
                     />
                   </div>
 
-                  {/* ✅ YA NO REPETIMOS "by name": ahora DOB */}
                   <div>
                     <p className="text-[11px] text-slate-400 mb-1">
                       Search by date of birth
@@ -315,7 +309,6 @@ export default function PatientsPage() {
                   </div>
                 </div>
 
-                {/* Extra: filtro por nombre (opcional pero útil, no duplica) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
                     <p className="text-[11px] text-slate-400 mb-1">
@@ -351,7 +344,6 @@ export default function PatientsPage() {
                 </div>
               </div>
 
-              {/* Tabla de pacientes */}
               <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-xs">
                 <div className="flex items-center justify-between mb-3">
                   <div>
@@ -383,7 +375,6 @@ export default function PatientsPage() {
                           } hover:bg-slate-800/60 transition`}
                         >
                           <td className="py-2 pr-4">
-                            {/* ✅ Link recuperado al expediente */}
                             <Link
                               href={`/patients/${p.id}`}
                               className="text-sky-300 hover:text-sky-200 hover:underline"
@@ -421,36 +412,8 @@ export default function PatientsPage() {
             </section>
           </main>
 
-          {/* Right rail ADIE */}
-          <aside className="w-full lg:w-80 bg-slate-950/90 border-t lg:border-t-0 lg:border-l border-slate-800 px-4 py-4 space-y-4 text-xs">
-            <section className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 p-4 space-y-3">
-              <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400">
-                ADIE Assistant
-              </p>
-              <p className="text-sm font-semibold text-slate-50">
-                Pre-visit risk &amp; summary
-              </p>
-              <p className="text-xs text-slate-400">
-                Next step: connect this registry to the ADIE-Postgres database so
-                each row opens the Master EMR with medical risks, meds and
-                clinical history.
-              </p>
-              <button className="w-full rounded-xl bg-sky-500 py-2 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition">
-                Open population insights
-              </button>
-            </section>
-
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3 text-xs">
-              <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400">
-                Registry KPIs
-              </p>
-              <ul className="space-y-1 text-slate-200">
-                <li>• {filtered.length} patient(s) currently visible.</li>
-                <li>• Ready to connect to patients table in Postgres.</li>
-                <li>• Will feed BI dashboards &amp; cohort selection.</li>
-              </ul>
-            </section>
-          </aside>
+          {/* ✅ Right rail reutilizable (Ads + Assistant + Updates + Help) */}
+          <RightRail dark={dark} />
         </div>
       </div>
     </div>
