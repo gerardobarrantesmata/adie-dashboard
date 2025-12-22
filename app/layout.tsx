@@ -13,18 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "ADIE EMR",
-    template: "%s • ADIE EMR",
-  },
-  description: "ADIE — Dental EMR with specialty workflows, analytics, and AI-assisted clinical support.",
+  title: "ADIE EMR",
+  description: "Astra Dental Intelligence • EMR",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>

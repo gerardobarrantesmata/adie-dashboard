@@ -4,24 +4,36 @@ import React from "react";
 import AdieAdCarousel from "@/app/_components/AdieAdCarousel";
 import { AdieAssistantPanel } from "@/app/_components/AdieAssistantPanel";
 
-export function RightRail({ className = "" }: { className?: string }) {
+type RightRailProps = {
+  className?: string;
+
+  /**
+   * Legacy prop (some pages still pass it).
+   * The global ADIE UI is dark by default, so we keep it for compatibility.
+   */
+  dark?: boolean;
+
+  /**
+   * Optional slot: if a page wraps <RightRail>...</RightRail>,
+   * we render that content here.
+   */
+  children?: React.ReactNode;
+};
+
+export function RightRail({ className = "", children }: RightRailProps) {
   return (
     <aside
-      className={[
-        "w-full lg:w-80",
-        "border-t lg:border-t-0 lg:border-l border-slate-800",
-        "px-4 py-4",
-        "bg-slate-950/70",
-        className,
-      ].join(" ")}
-      aria-label="Right rail"
+      className={`w-full lg:w-80 border-t lg:border-t-0 lg:border-l px-4 py-4 border-slate-800 bg-slate-950/70 ${className}`}
     >
       <div className="space-y-4">
-        {/* 1) Global: Ads + Assistant always present */}
         <AdieAdCarousel />
         <AdieAssistantPanel />
 
-        {/* 2) Optional: Product updates (can later be wired to real data) */}
+        {/* Optional injected content from pages */}
+        {children ? (
+          <section className="space-y-4">{children}</section>
+        ) : null}
+
         <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3 text-xs">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400">
@@ -38,7 +50,6 @@ export function RightRail({ className = "" }: { className?: string }) {
           </ul>
         </section>
 
-        {/* 3) Optional: Help */}
         <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3 text-xs">
           <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400">
             Help &amp; Guides

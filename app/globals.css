@@ -24,3 +24,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* --- ADIE: Force global dark baseline (prevents washed/gray UI) --- */
+html,
+body {
+  background-color: #020617 !important; /* slate-950 */
+  color: #f8fafc !important; /* slate-50 */
+}
+
+:root {
+  color-scheme: dark;
+}

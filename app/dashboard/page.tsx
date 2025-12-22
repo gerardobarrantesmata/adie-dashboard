@@ -2,44 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { RightRail } from "@/app/_components/RightRail";
-
-type Theme = "dark" | "light";
-
-/* ---------- Sidebar Nav Item ---------- */
-
-type NavItemProps = {
-  children: React.ReactNode;
-  href: string;
-  active?: boolean;
-  theme: Theme;
-};
-
-function NavItem({ children, href, active, theme }: NavItemProps) {
-  const dark = theme === "dark";
-
-  return (
-    <Link
-      href={href}
-      className={`w-full flex items-center rounded-xl px-3 py-2 text-xs justify-start transition-colors ${
-        active
-          ? dark
-            ? "bg-sky-500/20 text-sky-200 font-semibold border border-sky-500/50 shadow-[0_0_16px_rgba(56,189,248,0.6)]"
-            : "bg-sky-100 text-sky-700 font-semibold border border-sky-400"
-          : dark
-          ? "text-slate-300 hover:bg-slate-800/80 hover:text-sky-200"
-          : "text-slate-700 hover:bg-slate-100 hover:text-sky-600"
-      }`}
-    >
-      <span
-        className={`w-1.5 h-1.5 rounded-full mr-2 opacity-80 ${
-          active ? "bg-sky-400" : dark ? "bg-slate-500" : "bg-slate-400"
-        }`}
-      />
-      {children}
-    </Link>
-  );
-}
 
 /* ---------- Visits By Hour (dynamic) helpers ---------- */
 
@@ -120,18 +82,17 @@ function bucketizeByHour(appointments: any[]): number[] {
 
 /* ---------- MAIN PAGE (Dashboard) ---------- */
 
-export default function Home() {
-  const [theme, setTheme] = useState<Theme>("dark");
-  const dark = theme === "dark";
-
+export default function DashboardPage() {
   // Dynamic visits-by-hour state
-  const [hourCounts, setHourCounts] = useState<number[]>(Array(BUCKETS).fill(0));
+  const [hourCounts, setHourCounts] = useState<number[]>(
+    Array(BUCKETS).fill(0)
+  );
   const [visitsLoading, setVisitsLoading] = useState<boolean>(true);
 
-  const toggleTheme = () =>
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-
-  const fallbackMock = useMemo(() => [10, 25, 40, 35, 55, 50, 30, 20, 15, 10, 8, 5], []);
+  const fallbackMock = useMemo(
+    () => [10, 25, 40, 35, 55, 50, 30, 20, 15, 10, 8, 5],
+    []
+  );
 
   const hourHeights = useMemo(() => {
     const max = Math.max(...hourCounts, 0);
@@ -149,9 +110,10 @@ export default function Home() {
 
     try {
       const date = todayISO();
-      const res = await fetch(`/api/appointments?date=${encodeURIComponent(date)}`, {
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `/api/appointments?date=${encodeURIComponent(date)}`,
+        { cache: "no-store" }
+      );
       if (!res.ok) throw new Error("appointments_api_not_ok");
 
       const data = await res.json();
@@ -180,291 +142,211 @@ export default function Home() {
   }, []);
 
   return (
-    <div
-      className={`min-h-screen flex ${
-        dark ? "bg-slate-950 text-slate-50" : "bg-slate-100 text-slate-900"
-      }`}
-    >
-      {/* Sidebar */}
-      <aside
-        className={`hidden md:flex w-60 flex-col border-r ${
-          dark ? "border-slate-800 bg-slate-950/80" : "border-slate-200 bg-white"
-        }`}
-      >
-        <div className="h-16 flex items-center px-5 border-b border-slate-800/50">
-          <div className="h-9 w-9 rounded-xl bg-sky-500 flex items-center justify-center text-xs font-bold text-slate-950">
-            AD
-          </div>
-          <div className="ml-3">
-            <p className="text-xs uppercase tracking-[0.15em] text-slate-400">ADIE</p>
-            <p className="text-sm font-semibold">Astra Dental Intelligence</p>
-            <div className="text-[10px] tracking-[0.28em] uppercase text-slate-400/90">
-              EcoSystem
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <section className="xl:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.18em] uppercase text-slate-500">
+                Daily Snapshot
+              </p>
+              <p className="text-sm text-slate-200">
+                Today&apos;s activity at a glance
+              </p>
             </div>
           </div>
-        </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
-          <p className="px-3 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase mb-2">
-            Main
-          </p>
-
-          <NavItem href="/dashboard" active theme={theme}>
-            Dashboard
-          </NavItem>
-          <NavItem href="/specialties" theme={theme}>
-            Specialties
-          </NavItem>
-          <NavItem href="/patients" theme={theme}>
-            Patients
-          </NavItem>
-          <NavItem href="/calendar" theme={theme}>
-            Calendar
-          </NavItem>
-
-          <NavItem href="/odontogram" theme={theme}>
-            Dental Chart
-          </NavItem>
-          <NavItem href="/radiology" theme={theme}>
-            Radiology
-          </NavItem>
-          <NavItem href="/pharmacy" theme={theme}>
-            Pharmacy
-          </NavItem>
-
-          <NavItem href="/operations-hub" theme={theme}>
-            Operations Hub
-          </NavItem>
-
-          <p className="px-3 pt-4 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase mb-2">
-            Analytics
-          </p>
-          <NavItem href="/daily-bi" theme={theme}>
-            Daily BI
-          </NavItem>
-          <NavItem href="/financial" theme={theme}>
-            Financial
-          </NavItem>
-          <NavItem href="#" theme={theme}>
-            Implants &amp; Perio
-          </NavItem>
-        </nav>
-
-        <div className="border-t border-slate-800/60 px-4 py-3 text-xs text-slate-400">
-          <p className="font-semibold text-sm">Gerardo Barrantes</p>
-          <p>Admin · ADIE Pilot</p>
-        </div>
-      </aside>
-
-      {/* Main layout */}
-      <div className="flex-1 flex flex-col">
-        {/* Top bar */}
-        <header
-          className={`h-16 border-b flex items-center justify-between px-4 md:px-8 ${
-            dark
-              ? "border-slate-800 bg-slate-950/60 backdrop-blur"
-              : "border-slate-200 bg-white/80 backdrop-blur"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-block text-xs font-semibold tracking-[0.18em] uppercase text-slate-500">
-              Dashboard
-            </span>
-            <h1 className="text-lg md:text-xl font-semibold">
-              Clinic Operations Overview
-            </h1>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <StatCard
+              label="Scheduled"
+              value="12"
+              tone="indigo"
+              href="/operations-hub?tab=scheduled"
+            />
+            <StatCard
+              label="Confirmed"
+              value="9"
+              tone="emerald"
+              href="/operations-hub?tab=confirmed"
+            />
+            <StatCard
+              label="Completed"
+              value="6"
+              tone="sky"
+              href="/operations-hub?tab=completed"
+            />
+            <StatCard
+              label="Emergency"
+              value="1"
+              tone="rose"
+              href="/operations-hub?tab=emergency"
+            />
           </div>
 
-          <div className="flex items-center gap-3 text-xs">
-            <button
-              onClick={toggleTheme}
-              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 transition ${
-                dark
-                  ? "border-slate-700 text-slate-300 hover:border-sky-400 hover:text-sky-300"
-                  : "border-slate-300 text-slate-700 hover:border-sky-500 hover:text-sky-700"
-              }`}
+          <div className="mt-1">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 mb-2">
+              Visits by Hour (Today)
+            </p>
+
+            <div
+              className="h-28 rounded-xl border border-slate-800 bg-slate-950 flex items-end gap-1 px-3 pb-3"
+              aria-label="Visits by hour chart"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-              Theme: {dark ? "Dark" : "Light"}
+              {(hourHeights.some((v) => v > 0) ? hourHeights : fallbackMock).map(
+                (h, i) => (
+                  <div key={i} className="flex-1 flex flex-col justify-end">
+                    <div
+                      className={`w-full rounded-t-full bg-gradient-to-t from-sky-500 to-emerald-400 ${
+                        visitsLoading ? "opacity-60" : "opacity-100"
+                      }`}
+                      style={{ height: `${h}%` }}
+                    />
+                  </div>
+                )
+              )}
+            </div>
+
+            <div className="flex justify-between text-[10px] text-slate-500 mt-1.5 px-1">
+              <span>7:00</span>
+              <span>10:00</span>
+              <span>13:00</span>
+              <span>16:00</span>
+              <span>19:00</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.18em] uppercase text-slate-500">
+                Patients by Specialty
+              </p>
+              <p className="text-xs text-slate-400">
+                Active cases (last 6 months)
+              </p>
+            </div>
+            <select className="bg-slate-950 border border-slate-700 rounded-lg text-xs px-2 py-1">
+              <option>All clinics</option>
+              <option>Lake Nona</option>
+              <option>San José</option>
+            </select>
+          </div>
+
+          <div className="space-y-2 flex-1">
+            <BarRow label="General" value={72} color="bg-sky-500" />
+            <BarRow label="Perio" value={45} color="bg-emerald-400" />
+            <BarRow label="Endo" value={31} color="bg-cyan-400" />
+            <BarRow label="Prosth" value={28} color="bg-violet-400" />
+            <BarRow label="Ortho" value={22} color="bg-amber-400" />
+            <BarRow label="Pedia" value={18} color="bg-rose-400" />
+          </div>
+
+          <p className="mt-4 text-[11px] text-slate-500">
+            Click a bar (soon) to open that specialty workspace.
+          </p>
+        </section>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <MiniKpi label="Active Patients" value="248" sub="+18 this month" />
+        <MiniKpi label="Visits (30 days)" value="162" sub="On track" />
+        <MiniKpi label="Total Procedures" value="459" sub="Clinical" />
+        <MiniKpi label="Implants in progress" value="32" sub="Across 3 clinics" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-100">
+              Most Common Procedures
+            </h2>
+            <button className="text-[11px] text-sky-400 hover:text-sky-300">
+              View CPT / code map
             </button>
-
-            <Link
-              href="/calendar"
-              className="hidden sm:inline-flex items-center rounded-full border border-sky-500/70 px-3 py-1.5 font-semibold text-[11px] text-sky-300 hover:bg-sky-500/10"
-            >
-              Open Calendar
-            </Link>
-
-            <Link
-              href="/patients"
-              className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition"
-            >
-              New Appointment
-            </Link>
           </div>
-        </header>
+          <div className="space-y-2 text-xs">
+            <ProcedureRow
+              name="Adult Prophylaxis &amp; Recall"
+              count="96"
+              code="D1110 + exam"
+            />
+            <ProcedureRow
+              name="Composite Restoration"
+              count="74"
+              code="D2332 / D2392"
+            />
+            <ProcedureRow
+              name="Root Canal – Molar"
+              count="31"
+              code="Endo Mx/Md"
+            />
+            <ProcedureRow
+              name="Implant placement"
+              count="22"
+              code="Surgical guide + fixture"
+            />
+            <ProcedureRow
+              name="Clear aligner cases"
+              count="12"
+              code="ADIE Ortho Engine"
+            />
+          </div>
+        </section>
 
-        <div className="flex-1 flex flex-col lg:flex-row">
-          <main className="flex-1 px-4 md:px-8 py-5 space-y-5 overflow-auto">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-              <section className="xl:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-xs font-semibold tracking-[0.18em] uppercase text-slate-500">
-                      Daily Snapshot
-                    </p>
-                    <p className="text-sm text-slate-200">
-                      Today&apos;s activity at a glance
-                    </p>
-                  </div>
-                </div>
+        <section className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-100">
+              Today&apos;s Chair-time Map
+            </h2>
+            <span className="text-[11px] text-slate-400">
+              Drag &amp; drop (future) to reorganize schedule
+            </span>
+          </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-                  <StatCard
-                    label="Scheduled"
-                    value="12"
-                    tone="indigo"
-                    dark={dark}
-                    href="/operations-hub?tab=scheduled"
-                  />
-                  <StatCard
-                    label="Confirmed"
-                    value="9"
-                    tone="emerald"
-                    dark={dark}
-                    href="/operations-hub?tab=confirmed"
-                  />
-                  <StatCard
-                    label="Completed"
-                    value="6"
-                    tone="sky"
-                    dark={dark}
-                    href="/operations-hub?tab=completed"
-                  />
-                  <StatCard
-                    label="Emergency"
-                    value="1"
-                    tone="rose"
-                    dark={dark}
-                    href="/operations-hub?tab=emergency"
-                  />
-                </div>
+          <div className="space-y-2 text-xs">
+            <TimelineRow
+              time="08:00"
+              patient="María López"
+              detail="Perio maintenance · Room 2"
+              badge="PERIO"
+            />
+            <TimelineRow
+              time="09:30"
+              patient="David Chen"
+              detail="Implant surgery · AOX planning"
+              badge="IMPLANT"
+            />
+            <TimelineRow
+              time="11:00"
+              patient="Ana Rodríguez"
+              detail="Ortho aligner check · Set 6/24"
+              badge="ORTHO"
+            />
+            <TimelineRow
+              time="14:00"
+              patient="Carlos Vega"
+              detail="Emergency – pain UR6"
+              badge="EMERGENCY"
+            />
+            <TimelineRow
+              time="16:00"
+              patient="Gina Park"
+              detail="Pedo recall &amp; sealants"
+              badge="PEDIA"
+            />
+          </div>
+        </section>
+      </div>
 
-                <div className="mt-1">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 mb-2">
-                    Visits by Hour (Today)
-                  </p>
-
-                  <div
-                    className="h-28 rounded-xl border border-slate-800 bg-slate-950 flex items-end gap-1 px-3 pb-3"
-                    aria-label="Visits by hour chart"
-                  >
-                    {(hourHeights.some((v) => v > 0) ? hourHeights : fallbackMock).map(
-                      (h, i) => (
-                        <div key={i} className="flex-1 flex flex-col justify-end">
-                          <div
-                            className={`w-full rounded-t-full bg-gradient-to-t from-sky-500 to-emerald-400 ${
-                              visitsLoading ? "opacity-60" : "opacity-100"
-                            }`}
-                            style={{ height: `${h}%` }}
-                          />
-                        </div>
-                      )
-                    )}
-                  </div>
-
-                  <div className="flex justify-between text-[10px] text-slate-500 mt-1.5 px-1">
-                    <span>7:00</span>
-                    <span>10:00</span>
-                    <span>13:00</span>
-                    <span>16:00</span>
-                    <span>19:00</span>
-                  </div>
-                </div>
-              </section>
-
-              <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5 flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-xs font-semibold tracking-[0.18em] uppercase text-slate-500">
-                      Patients by Specialty
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Active cases (last 6 months)
-                    </p>
-                  </div>
-                  <select className="bg-slate-950 border border-slate-700 rounded-lg text-xs px-2 py-1">
-                    <option>All clinics</option>
-                    <option>Lake Nona</option>
-                    <option>San José</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2 flex-1">
-                  <BarRow label="General" value={72} color="bg-sky-500" />
-                  <BarRow label="Perio" value={45} color="bg-emerald-400" />
-                  <BarRow label="Endo" value={31} color="bg-cyan-400" />
-                  <BarRow label="Prosth" value={28} color="bg-violet-400" />
-                  <BarRow label="Ortho" value={22} color="bg-amber-400" />
-                  <BarRow label="Pedia" value={18} color="bg-rose-400" />
-                </div>
-
-                <p className="mt-4 text-[11px] text-slate-500">
-                  Click a bar (soon) to open that specialty workspace.
-                </p>
-              </section>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <MiniKpi label="Active Patients" value="248" sub="+18 this month" />
-              <MiniKpi label="Visits (30 days)" value="162" sub="On track" />
-              <MiniKpi label="Total Procedures" value="459" sub="Clinical" />
-              <MiniKpi label="Implants in progress" value="32" sub="Across 3 clinics" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-slate-100">
-                    Most Common Procedures
-                  </h2>
-                  <button className="text-[11px] text-sky-400 hover:text-sky-300">
-                    View CPT / code map
-                  </button>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <ProcedureRow name="Adult Prophylaxis &amp; Recall" count="96" code="D1110 + exam" />
-                  <ProcedureRow name="Composite Restoration" count="74" code="D2332 / D2392" />
-                  <ProcedureRow name="Root Canal – Molar" count="31" code="Endo Mx/Md" />
-                  <ProcedureRow name="Implant placement" count="22" code="Surgical guide + fixture" />
-                  <ProcedureRow name="Clear aligner cases" count="12" code="ADIE Ortho Engine" />
-                </div>
-              </section>
-
-              <section className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 md:p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-slate-100">
-                    Today&apos;s Chair-time Map
-                  </h2>
-                  <span className="text-[11px] text-slate-400">
-                    Drag &amp; drop (future) to reorganize schedule
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <TimelineRow time="08:00" patient="María López" detail="Perio maintenance · Room 2" badge="PERIO" />
-                  <TimelineRow time="09:30" patient="David Chen" detail="Implant surgery · AOX planning" badge="IMPLANT" />
-                  <TimelineRow time="11:00" patient="Ana Rodríguez" detail="Ortho aligner check · Set 6/24" badge="ORTHO" />
-                  <TimelineRow time="14:00" patient="Carlos Vega" detail="Emergency – pain UR6" badge="EMERGENCY" />
-                  <TimelineRow time="16:00" patient="Gina Park" detail="Pedo recall &amp; sealants" badge="PEDIA" />
-                </div>
-              </section>
-            </div>
-          </main>
-
-          {/* ✅ Right rail (reusable) */}
-          <RightRail dark={dark} />
-        </div>
+      <div className="text-[11px] text-slate-500">
+        <Link href="/specialties" className="text-sky-400 hover:text-sky-300">
+          Go to Specialties
+        </Link>
+        <span className="mx-2">•</span>
+        <Link href="/patients" className="text-sky-400 hover:text-sky-300">
+          Open Patients
+        </Link>
       </div>
     </div>
   );
@@ -476,11 +358,10 @@ type StatCardProps = {
   label: string;
   value: string;
   tone: "indigo" | "emerald" | "sky" | "rose";
-  dark: boolean;
   href?: string;
 };
 
-function StatCard({ label, value, tone, dark, href }: StatCardProps) {
+function StatCard({ label, value, tone, href }: StatCardProps) {
   const toneMapDark: Record<StatCardProps["tone"], string> = {
     indigo:
       "bg-gradient-to-b from-indigo-950/90 to-slate-950/70 text-indigo-100 border-indigo-400/60",
@@ -491,24 +372,25 @@ function StatCard({ label, value, tone, dark, href }: StatCardProps) {
       "bg-gradient-to-b from-rose-950/85 to-slate-950/70 text-rose-100 border-rose-400/60",
   };
 
-  const toneMapLight: Record<StatCardProps["tone"], string> = {
-    indigo: "bg-indigo-50 text-indigo-900 border-indigo-200",
-    emerald: "bg-emerald-50 text-emerald-900 border-emerald-200",
-    sky: "bg-sky-50 text-sky-900 border-sky-200",
-    rose: "bg-rose-50 text-rose-900 border-rose-200",
-  };
-
-  const toneClass = dark ? toneMapDark[tone] : toneMapLight[tone];
+  const toneClass = toneMapDark[tone];
 
   const CardInner = (
     <div
       className={`rounded-2xl border px-3 py-3 ${toneClass} ${
-        href ? "cursor-pointer hover:brightness-110 hover:border-white/25 transition" : ""
+        href
+          ? "cursor-pointer hover:brightness-110 hover:border-white/25 transition"
+          : ""
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">{label}</p>
-        {href && <span className="text-[10px] opacity-70 whitespace-nowrap">Open →</span>}
+        <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">
+          {label}
+        </p>
+        {href && (
+          <span className="text-[10px] opacity-70 whitespace-nowrap">
+            Open →
+          </span>
+        )}
       </div>
 
       <p className="text-xl font-semibold leading-none mt-1">{value}</p>
@@ -528,7 +410,10 @@ function BarRow({ label, value, color }: BarRowProps) {
         <span>{value}</span>
       </div>
       <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-        <div className={`h-full ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
+        <div
+          className={`h-full ${color}`}
+          style={{ width: `${Math.min(value, 100)}%` }}
+        />
       </div>
     </div>
   );
@@ -539,7 +424,9 @@ type MiniKpiProps = { label: string; value: string; sub: string };
 function MiniKpi({ label, value, sub }: MiniKpiProps) {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 mb-1">{label}</p>
+      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 mb-1">
+        {label}
+      </p>
       <p className="text-xl font-semibold text-slate-50">{value}</p>
       <p className="text-[11px] text-slate-400 mt-1">{sub}</p>
     </div>
@@ -570,9 +457,9 @@ type TimelineRowProps = {
 };
 
 function TimelineRow({ time, patient, detail, badge }: TimelineRowProps) {
-  const href = `/calendar?from=dashboard&time=${encodeURIComponent(time)}&patient=${encodeURIComponent(
-    patient
-  )}`;
+  const href = `/calendar?from=dashboard&time=${encodeURIComponent(
+    time
+  )}&patient=${encodeURIComponent(patient)}`;
 
   return (
     <Link href={href} className="block">
