@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
   output   = "../lib/generated/prisma"
@@ -12,11 +10,326 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-/**
- * =========================
- * CORE v1 (Multi-tenant)
- * =========================
- */
+model Clinic {
+  id              String           @id @default(uuid())
+  name            String
+  country         String?
+  city            String?
+  /// Código corto del tenant (ej: "clinica-hermano"). Único global.
+  code            String           @unique
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Multi-location + membership
+  locations       Location[]
+  members         ClinicMember[]
+  locationMembers LocationMember[]
+
+  // Existing tenant-scoped data
+  audits          AuditLog[]
+  encounters      Encounter[]
+  networkConsults NetworkConsult[]
+  patients        Patient[]
+
+  @@index([createdAt])
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  clinicId  String
+  name      String
+  country   String?
+  city      String?
+  address1  String?
+  address2  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic     Clinic      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patients   Patient[]
+  encounters Encounter[]
+
+  members LocationMember[]
+
+  @@unique([clinicId, name])
+  @@index([clinicId, isActive])
+  @@index([clinicId, createdAt])
+}
+
+model User {
+  id               String              @id @default(uuid())
+  email            String              @unique
+  fullName         String?
+  isActive         Boolean             @default(true)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  failedLoginCount Int                 @default(0)
+  lastLoginAt      DateTime?
+  lockedUntil      DateTime?
+
+  /// Auth (Email + Password)
+  passwordHash     String?
+
+  // Memberships (doctor can belong to multiple clinics)
+  clinicMemberships   ClinicMember[]
+  locationMemberships LocationMember[]
+
+  // Existing relations
+  networkUploads   NetworkAttachment[] @relation("NetworkAttachmentUploader")
+  networkConsults  NetworkConsult[]    @relation("NetworkConsultAuthor")
+  networkMessages  NetworkMessage[]    @relation("NetworkMessageAuthor")
+  provider         ProviderProfile?
+
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model ClinicMember {
+  id            String           @id @default(uuid())
+  clinicId      String
+  userId        String
+  role          UserRole         @default(STAFF)
+  status        MembershipStatus @default(ACTIVE)
+
+  /// Who enrolled/invited this user (admin)
+  invitedByUserId String?
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  clinic        Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Optional relation to inviter (no cascade to avoid accidental deletes)
+  invitedByUser User?            @relation("ClinicMemberInvitedBy", fields: [invitedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([clinicId, userId])
+  @@index([clinicId, role])
+  @@index([clinicId, status])
+  @@index([userId, createdAt])
+}
+
+model LocationMember {
+  id         String   @id @default(uuid())
+  clinicId   String
+  locationId String
+  userId     String
+  createdAt  DateTime @default(now())
+
+  clinic   Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([locationId, userId])
+  @@index([clinicId, userId])
+  @@index([clinicId, locationId])
+}
+
+model ProviderProfile {
+  id               String              @id @default(uuid())
+  userId           String              @unique
+  licenseNumber    String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  /// Especialidad “principal” opcional (UI), pero permitimos múltiples via join table
+  primarySpecialty SpecialtyType?
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialties      ProviderSpecialty[]
+
+  @@index([primarySpecialty])
+}
+
+model ProviderSpecialty {
+  id         String          @id @default(uuid())
+  providerId String
+  specialty  SpecialtyType
+  createdAt  DateTime        @default(now())
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, specialty])
+  @@index([specialty])
+}
+
+model Patient {
+  id                 String           @id @default(uuid())
+  clinicId           String
+  locationId         String?
+  adieId             String
+  firstName          String
+  lastName           String
+  secondLastName     String?
+  dateOfBirth        DateTime?
+  genderIdentity     String?
+  email              String?
+  country            String?
+  city               String?
+  mobilePhoneE164    String?
+  otherPhoneE164     String?
+  emergencyPhoneE164 String?
+  relationship       String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  encounters         Encounter[]
+  networkConsults    NetworkConsult[]
+
+  clinic             Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  location           Location?        @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  @@unique([clinicId, adieId])
+  @@index([clinicId, lastName, firstName])
+  @@index([clinicId, createdAt])
+  @@index([clinicId, locationId])
+}
+
+model Encounter {
+  id             String          @id @default(uuid())
+  clinicId       String
+  locationId     String?
+  patientId      String
+
+  /// Provider is a global user; access is controlled by ClinicMember at app level
+  providerUserId String?
+
+  status         EncounterStatus @default(OPEN)
+  chiefComplaint String?
+  notes          String?
+  startedAt      DateTime        @default(now())
+  closedAt       DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  aiOutputs      AIOutput[]
+  documents      Document[]
+  specialtyNotes SpecialtyNote[]
+
+  clinic         Clinic          @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  location       Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  patient        Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId, patientId, startedAt])
+  @@index([clinicId, status])
+  @@index([clinicId, locationId])
+}
+
+model SpecialtyNote {
+  id          String        @id @default(uuid())
+  encounterId String
+  specialty   SpecialtyType
+  data        Json
+  summary     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  encounter   Encounter     @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  @@index([encounterId, specialty])
+}
+
+model Document {
+  id          String    @id @default(uuid())
+  encounterId String
+  type        String
+  url         String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  @@index([encounterId, type])
+}
+
+model AIOutput {
+  id          String    @id @default(uuid())
+  encounterId String
+  kind        String
+  model       String?
+  inputHash   String?
+  output      String
+  createdAt   DateTime  @default(now())
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  @@index([encounterId, kind, createdAt])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  clinicId    String
+  actorUserId String?
+  action      String
+  entity      String
+  entityId    String?
+  meta        Json?
+  createdAt   DateTime @default(now())
+  clinic      Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId, createdAt])
+  @@index([clinicId, entity, entityId])
+}
+
+model NetworkConsult {
+  id                 String               @id @default(uuid())
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  clinicId           String
+  patientId          String?
+  title              String
+  question           String
+  specialty          SpecialtyType        @default(GENERAL)
+  urgency            NetworkUrgency       @default(ROUTINE)
+  status             NetworkConsultStatus @default(OPEN)
+  authorNameSnapshot String
+  authorUserId       String?
+
+  attachments        NetworkAttachment[]
+  messages           NetworkMessage[]
+
+  authorUser         User?                @relation("NetworkConsultAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  clinic             Clinic               @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient            Patient?             @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, createdAt])
+  @@index([clinicId, specialty])
+  @@index([clinicId, urgency])
+  @@index([clinicId, status])
+  @@index([patientId])
+}
+
+model NetworkMessage {
+  id                 String         @id @default(uuid())
+  createdAt          DateTime       @default(now())
+  consultId          String
+  authorNameSnapshot String
+  authorUserId       String?
+  body               String
+
+  authorUser         User?          @relation("NetworkMessageAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  consult            NetworkConsult @relation(fields: [consultId], references: [id], onDelete: Cascade)
+
+  @@index([consultId, createdAt])
+}
+
+model NetworkAttachment {
+  id                     String                @id @default(uuid())
+  createdAt              DateTime              @default(now())
+  consultId              String
+  uploadedByNameSnapshot String?
+  uploadedByUserId       String?
+  kind                   NetworkAttachmentKind @default(IMAGE)
+  url                    String
+  mime                   String?
+
+  consult                NetworkConsult        @relation(fields: [consultId], references: [id], onDelete: Cascade)
+  uploadedByUser         User?                 @relation("NetworkAttachmentUploader", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([consultId])
+  @@index([createdAt])
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+}
 
 enum UserRole {
   OWNER
@@ -36,234 +349,13 @@ enum SpecialtyType {
   ENDODONTICS
   PERIODONTICS
   PROSTHODONTICS
-  ORTHODONTONTICS
   ORTHODONTICS
   IMPLANTS
   ORAL_SURGERY
   PEDIATRIC
   RADIOLOGY
+  ORTHODONTONTICS
 }
-
-model Clinic {
-  id String @id @default(uuid())
-
-  /// Código corto del tenant (ej: "clinica-hermano"). Único global.
-  code String @unique
-
-  name      String
-  country   String?
-  city      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users      User[]
-  patients   Patient[]
-  encounters Encounter[]
-  audits     AuditLog[]
-
-  // ADIE Network
-  networkConsults NetworkConsult[]
-
-  @@index([createdAt])
-}
-
-model User {
-  id       String   @id @default(uuid())
-  clinicId String
-  role     UserRole @default(STAFF)
-
-  email    String
-  fullName String?
-  isActive Boolean @default(true)
-
-  /// Auth (Email + Password)
-  // Guardamos hash (bcrypt/argon2). Nunca plaintext.
-  passwordHash     String?
-  failedLoginCount Int       @default(0)
-  lockedUntil      DateTime?
-  lastLoginAt      DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  clinic   Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  provider ProviderProfile?
-
-  // ADIE Network (optional back-relations)
-  networkConsults NetworkConsult[]    @relation("NetworkConsultAuthor")
-  networkMessages NetworkMessage[]    @relation("NetworkMessageAuthor")
-  networkUploads  NetworkAttachment[] @relation("NetworkAttachmentUploader")
-
-  @@unique([clinicId, email])
-  @@index([clinicId, role])
-  @@index([clinicId, isActive])
-}
-
-model ProviderProfile {
-  id            String  @id @default(uuid())
-  userId        String  @unique
-  licenseNumber String?
-
-  /// Especialidad “principal” opcional (UI), pero permitimos múltiples via join table
-  primarySpecialty SpecialtyType?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialties ProviderSpecialty[]
-
-  @@index([primarySpecialty])
-}
-
-model ProviderSpecialty {
-  id         String        @id @default(uuid())
-  providerId String
-  specialty  SpecialtyType
-
-  createdAt DateTime @default(now())
-
-  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
-
-  @@unique([providerId, specialty])
-  @@index([specialty])
-}
-
-model Patient {
-  id       String @id @default(uuid())
-  clinicId String
-
-  // ID que pone el paciente (único por clínica)
-  adieId String
-
-  firstName      String
-  lastName       String
-  secondLastName String?
-  dateOfBirth    DateTime?
-  genderIdentity String?
-
-  email   String?
-  country String?
-  city    String?
-
-  mobilePhoneE164    String?
-  otherPhoneE164     String?
-  emergencyPhoneE164 String?
-
-  relationship String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  clinic     Clinic      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  encounters Encounter[]
-
-  // ADIE Network (future linking)
-  networkConsults NetworkConsult[]
-
-  @@unique([clinicId, adieId])
-  @@index([clinicId, lastName, firstName])
-  @@index([clinicId, createdAt])
-}
-
-model Encounter {
-  id             String  @id @default(uuid())
-  clinicId       String
-  patientId      String
-  providerUserId String?
-
-  status EncounterStatus @default(OPEN)
-
-  chiefComplaint String?
-  notes          String?
-
-  startedAt DateTime  @default(now())
-  closedAt  DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  clinic  Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
-
-  specialtyNotes SpecialtyNote[]
-  documents      Document[]
-  aiOutputs      AIOutput[]
-
-  @@index([clinicId, patientId, startedAt])
-  @@index([clinicId, status])
-}
-
-model SpecialtyNote {
-  id          String        @id @default(uuid())
-  encounterId String
-  specialty   SpecialtyType
-
-  data    Json
-  summary String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  encounter Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
-
-  @@index([encounterId, specialty])
-}
-
-model Document {
-  id          String @id @default(uuid())
-  encounterId String
-
-  type     String
-  url      String
-  metadata Json?
-
-  createdAt DateTime @default(now())
-
-  encounter Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
-
-  @@index([encounterId, type])
-}
-
-model AIOutput {
-  id          String @id @default(uuid())
-  encounterId String
-
-  kind      String
-  model     String?
-  inputHash String?
-  output    String
-
-  createdAt DateTime @default(now())
-
-  encounter Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
-
-  @@index([encounterId, kind, createdAt])
-}
-
-model AuditLog {
-  id          String  @id @default(uuid())
-  clinicId    String
-  actorUserId String?
-
-  action   String
-  entity   String
-  entityId String?
-  meta     Json?
-
-  createdAt DateTime @default(now())
-
-  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-
-  @@index([clinicId, createdAt])
-  @@index([clinicId, entity, entityId])
-}
-
-/**
- * =========================
- * ADIE Network (v1)
- * =========================
- */
 
 enum NetworkUrgency {
   ROUTINE
@@ -279,75 +371,4 @@ enum NetworkAttachmentKind {
   IMAGE
   PDF
   FILE
-}
-
-model NetworkConsult {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Multi-tenant guardrail
-  clinicId String
-  clinic   Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-
-  // Optional: link to a Patient when the consult is about a specific case
-  patientId String?
-  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
-
-  title     String
-  question  String
-  specialty SpecialtyType        @default(GENERAL)
-  urgency   NetworkUrgency       @default(ROUTINE)
-  status    NetworkConsultStatus @default(OPEN)
-
-  // Author (snapshot + optional relation)
-  authorNameSnapshot String
-  authorUserId       String?
-  authorUser         User?   @relation("NetworkConsultAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
-
-  messages    NetworkMessage[]
-  attachments NetworkAttachment[]
-
-  @@index([clinicId, createdAt])
-  @@index([clinicId, specialty])
-  @@index([clinicId, urgency])
-  @@index([clinicId, status])
-  @@index([patientId])
-}
-
-model NetworkMessage {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-
-  consultId String
-  consult   NetworkConsult @relation(fields: [consultId], references: [id], onDelete: Cascade)
-
-  // Author (snapshot + optional relation)
-  authorNameSnapshot String
-  authorUserId       String?
-  authorUser         User?   @relation("NetworkMessageAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
-
-  body String
-
-  @@index([consultId, createdAt])
-}
-
-model NetworkAttachment {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-
-  consultId String
-  consult   NetworkConsult @relation(fields: [consultId], references: [id], onDelete: Cascade)
-
-  // Uploader (snapshot + optional relation)
-  uploadedByNameSnapshot String?
-  uploadedByUserId       String?
-  uploadedByUser         User?   @relation("NetworkAttachmentUploader", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
-
-  kind NetworkAttachmentKind @default(IMAGE)
-  url  String
-  mime String?
-
-  @@index([consultId])
-  @@index([createdAt])
 }
