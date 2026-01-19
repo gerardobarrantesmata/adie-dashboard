@@ -1,6 +1,7 @@
+// app/api/auth/login/logout/route.ts
 import { NextResponse } from "next/server";
 
-const COOKIE_NAME = "adie_auth"; // <-- si tu cookie real tiene otro nombre, cámbialo aquí
+const COOKIE_NAME = "adie_auth";
 
 export async function POST() {
   const res = NextResponse.json({ ok: true });
