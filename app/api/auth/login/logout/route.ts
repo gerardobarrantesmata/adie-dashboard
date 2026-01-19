@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
-const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "adie_session";
+const COOKIE_NAME = "adie_auth"; // <-- si tu cookie real tiene otro nombre, cámbialo aquí
 
 export async function POST() {
-  cookies().set(COOKIE_NAME, "", { path: "/", maxAge: 0 });
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+
+  // Borra la cookie
+  res.cookies.set(COOKIE_NAME, "", {
+    path: "/",
+    maxAge: 0,
+  });
+
+  return res;
 }
