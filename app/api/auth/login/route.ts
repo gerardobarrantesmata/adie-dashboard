@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { signSessionToken } from "@/lib/auth";
 
 const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "adie_session";
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Clinic Code inválido." }, { status: 401 });
     }
 
-    // OJO: tu schema usa unique compuesto (clinicId + email)
+    // unique compuesto (clinicId + email)
     const user = await prisma.user.findUnique({
       where: {
         clinicId_email: { clinicId: clinic.id, email },
@@ -105,14 +105,14 @@ export async function POST(req: Request) {
 
     const res = NextResponse.json({ ok: true });
 
-    // ✅ AQUÍ se setea la cookie correctamente
+    // ✅ Cookie válida para TODA la app (incluye /api/settings/*)
     res.cookies.set({
       name: COOKIE_NAME,
       value: token,
       httpOnly: true,
       secure: IS_PROD,
       sameSite: "lax",
-      path: "/",
+      path: "/", // <- clave
       maxAge: 60 * 60 * SESSION_HOURS,
     });
 
