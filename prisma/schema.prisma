@@ -25,6 +25,12 @@ enum UserRole {
   STAFF
 }
 
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
 enum EncounterStatus {
   OPEN
   LOCKED
@@ -36,7 +42,6 @@ enum SpecialtyType {
   ENDODONTICS
   PERIODONTICS
   PROSTHODONTICS
-  ORTHODONTONTICS
   ORTHODONTICS
   IMPLANTS
   ORAL_SURGERY
@@ -44,10 +49,16 @@ enum SpecialtyType {
   RADIOLOGY
 }
 
+/**
+ * =========================
+ * TENANCY MODELS
+ * =========================
+ */
+
 model Clinic {
   id String @id @default(uuid())
 
-  /// Código corto del tenant (ej: "clinica-hermano"). Único global.
+  /// Código corto del tenant (ej: "Ortho-Club"). Único global.
   code String @unique
 
   name      String
@@ -56,7 +67,12 @@ model Clinic {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users      User[]
+  // Memberships / Locations
+  members         ClinicMember[]
+  locations       Location[]
+  locationMembers LocationMember[] // <-- RELACION INVERSA requerida por Prisma
+
+  // Clinical
   patients   Patient[]
   encounters Encounter[]
   audits     AuditLog[]
@@ -68,16 +84,14 @@ model Clinic {
 }
 
 model User {
-  id       String   @id @default(uuid())
-  clinicId String
-  role     UserRole @default(STAFF)
+  id String @id @default(uuid())
 
-  email    String
+  /// Login principal: email global único
+  email    String  @unique
   fullName String?
   isActive Boolean @default(true)
 
   /// Auth (Email + Password)
-  // Guardamos hash (bcrypt/argon2). Nunca plaintext.
   passwordHash     String?
   failedLoginCount Int       @default(0)
   lockedUntil      DateTime?
@@ -86,7 +100,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  clinic   Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  // Memberships (multi-clinic / multi-location)
+  clinicMemberships   ClinicMember[]
+  locationMemberships LocationMember[]
+
+  // Provider profile (opcional; 1:1 con user)
   provider ProviderProfile?
 
   // ADIE Network (optional back-relations)
@@ -94,17 +112,86 @@ model User {
   networkMessages NetworkMessage[]    @relation("NetworkMessageAuthor")
   networkUploads  NetworkAttachment[] @relation("NetworkAttachmentUploader")
 
-  @@unique([clinicId, email])
-  @@index([clinicId, role])
-  @@index([clinicId, isActive])
+  // Encounters where this user is the provider (optional)
+  encountersAsProvider Encounter[] @relation("EncounterProvider")
+
+  @@index([isActive])
 }
+
+model ClinicMember {
+  id       String           @id @default(uuid())
+  clinicId String
+  userId   String
+  role     UserRole         @default(STAFF)
+  status   MembershipStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, userId])
+  @@index([clinicId, role])
+  @@index([clinicId, status])
+  @@index([userId])
+}
+
+model Location {
+  id       String @id @default(uuid())
+  clinicId String
+
+  name     String
+  city     String?
+  country  String?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  // Access control by location (optional)
+  members LocationMember[] // <-- RELACION INVERSA requerida por Prisma
+
+  // Future linking (optional)
+  patients   Patient[]
+  encounters Encounter[]
+
+  @@index([clinicId, isActive])
+  @@index([clinicId, createdAt])
+}
+
+model LocationMember {
+  id         String @id @default(uuid())
+  clinicId   String
+  locationId String
+  userId     String
+
+  createdAt DateTime @default(now())
+
+  clinic   Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, locationId])
+  @@index([clinicId])
+  @@index([locationId])
+  @@index([userId])
+}
+
+/**
+ * =========================
+ * PROVIDERS (optional)
+ * =========================
+ */
 
 model ProviderProfile {
   id            String  @id @default(uuid())
   userId        String  @unique
   licenseNumber String?
 
-  /// Especialidad “principal” opcional (UI), pero permitimos múltiples via join table
+  /// Especialidad principal opcional (UI)
   primarySpecialty SpecialtyType?
 
   createdAt DateTime @default(now())
@@ -129,9 +216,18 @@ model ProviderSpecialty {
   @@index([specialty])
 }
 
+/**
+ * =========================
+ * CLINICAL
+ * =========================
+ */
+
 model Patient {
   id       String @id @default(uuid())
   clinicId String
+
+  /// Si quieres amarrar paciente a una sede específica (opcional)
+  locationId String?
 
   // ID que pone el paciente (único por clínica)
   adieId String
@@ -155,7 +251,9 @@ model Patient {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  clinic     Clinic      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  clinic   Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
   encounters Encounter[]
 
   // ADIE Network (future linking)
@@ -164,12 +262,18 @@ model Patient {
   @@unique([clinicId, adieId])
   @@index([clinicId, lastName, firstName])
   @@index([clinicId, createdAt])
+  @@index([locationId])
 }
 
 model Encounter {
-  id             String  @id @default(uuid())
-  clinicId       String
-  patientId      String
+  id        String @id @default(uuid())
+  clinicId  String
+  patientId String
+
+  /// Sede (opcional)
+  locationId String?
+
+  /// Provider (User global) opcional
   providerUserId String?
 
   status EncounterStatus @default(OPEN)
@@ -183,8 +287,11 @@ model Encounter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  clinic  Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  clinic   Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient  Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  providerUser User? @relation("EncounterProvider", fields: [providerUserId], references: [id], onDelete: SetNull)
 
   specialtyNotes SpecialtyNote[]
   documents      Document[]
@@ -192,6 +299,8 @@ model Encounter {
 
   @@index([clinicId, patientId, startedAt])
   @@index([clinicId, status])
+  @@index([locationId])
+  @@index([providerUserId])
 }
 
 model SpecialtyNote {
@@ -242,8 +351,9 @@ model AIOutput {
 }
 
 model AuditLog {
-  id          String  @id @default(uuid())
-  clinicId    String
+  id       String @id @default(uuid())
+  clinicId String
+
   actorUserId String?
 
   action   String

@@ -1,124 +1,127 @@
+// app/api/auth/login/route.ts
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { signSessionToken } from "@/lib/auth";
+import { compare } from "bcryptjs";
 
 const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "adie_session";
-const IS_PROD = process.env.NODE_ENV === "production";
 
-const MAX_FAILS = 5;
-const LOCK_MINUTES = 15;
-const SESSION_HOURS = 12;
+type SessionShape = { userId?: string; clinicId?: string; locationId?: string };
+
+function normalizeClinicCode(input: string) {
+  return String(input || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json();
 
-    const clinicCodeRaw = String(body?.clinicCode ?? "").trim();
-    const email = String(body?.email ?? "").trim().toLowerCase();
-    const password = String(body?.password ?? "");
+    const email = String(body?.email || "").trim().toLowerCase();
+    const password = String(body?.password || "");
+    const clinicCode = normalizeClinicCode(body?.clinicCode || ""); // opcional
 
-    if (!clinicCodeRaw || !email || !password) {
-      return NextResponse.json({ error: "Faltan datos." }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ ok: false, error: "MISSING_FIELDS" }, { status: 400 });
     }
 
-    // Clinic code case-insensitive (evita fallos por mayúsculas/minúsculas)
-    const clinic = await prisma.clinic.findFirst({
-      where: { code: { equals: clinicCodeRaw, mode: "insensitive" } },
-      select: { id: true, code: true },
-    });
-
-    if (!clinic) {
-      return NextResponse.json({ error: "Clinic Code inválido." }, { status: 401 });
-    }
-
-    // OJO: tu schema usa unique compuesto (clinicId + email)
     const user = await prisma.user.findUnique({
-      where: {
-        clinicId_email: { clinicId: clinic.id, email },
-      },
-      select: {
-        id: true,
-        clinicId: true,
-        email: true,
-        role: true,
-        isActive: true,
-        passwordHash: true,
-        failedLoginCount: true,
-        lockedUntil: true,
-      },
+      where: { email },
+      select: { id: true, email: true, passwordHash: true, isActive: true, lockedUntil: true },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "Email o password incorrecto." }, { status: 401 });
-    }
-
-    if (!user.isActive) {
-      return NextResponse.json(
-        { error: "Usuario inactivo. Contacta al administrador." },
-        { status: 403 }
-      );
+    if (!user || !user.isActive || !user.passwordHash) {
+      return NextResponse.json({ ok: false, error: "INVALID_CREDENTIALS" }, { status: 401 });
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      return NextResponse.json(
-        { error: "Cuenta bloqueada temporalmente. Intenta más tarde." },
-        { status: 429 }
-      );
+      return NextResponse.json({ ok: false, error: "LOCKED" }, { status: 423 });
     }
 
-    if (!user.passwordHash) {
-      return NextResponse.json(
-        { error: "Este usuario no tiene password configurado aún." },
-        { status: 403 }
-      );
+    const valid = await compare(password, user.passwordHash);
+    if (!valid) {
+      return NextResponse.json({ ok: false, error: "INVALID_CREDENTIALS" }, { status: 401 });
     }
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
-
-    if (!ok) {
-      const nextFails = (user.failedLoginCount ?? 0) + 1;
-      const lock =
-        nextFails >= MAX_FAILS
-          ? new Date(Date.now() + LOCK_MINUTES * 60 * 1000)
-          : null;
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { failedLoginCount: nextFails, lockedUntil: lock },
+    // ✅ Caso 1: No clinicCode -> ir a selector de workspaces
+    if (!clinicCode) {
+      const res = NextResponse.json({ ok: true, next: "/select-workspace" });
+      const session: SessionShape = { userId: user.id };
+      res.cookies.set(COOKIE_NAME, JSON.stringify(session), {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
       });
-
-      return NextResponse.json({ error: "Email o password incorrecto." }, { status: 401 });
+      return res;
     }
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { failedLoginCount: 0, lockedUntil: null, lastLoginAt: new Date() },
+    // ✅ Caso 2: clinicCode -> entrar directo a esa clínica (si es miembro)
+    const clinic = await prisma.clinic.findUnique({
+      where: { code: clinicCode },
+      select: { id: true, code: true, name: true },
     });
 
-    const token = await signSessionToken({
-      userId: user.id,
-      clinicId: user.clinicId,
-      role: user.role,
-      email: user.email,
+    if (!clinic) {
+      return NextResponse.json({ ok: false, error: "CLINIC_NOT_FOUND" }, { status: 404 });
+    }
+
+    const member = await prisma.clinicMember.findUnique({
+      where: { clinicId_userId: { clinicId: clinic.id, userId: user.id } },
+      select: { status: true, role: true },
     });
 
-    const res = NextResponse.json({ ok: true });
+    if (!member || member.status !== "ACTIVE") {
+      return NextResponse.json({ ok: false, error: "NOT_A_MEMBER" }, { status: 403 });
+    }
 
-    // ✅ AQUÍ se setea la cookie correctamente
-    res.cookies.set({
-      name: COOKIE_NAME,
-      value: token,
+    // Elegir Location (si hay LocationMember, respetarlo; si no, usar la primera activa)
+    const locationMembers = await prisma.locationMember.findMany({
+      where: { userId: user.id, clinicId: clinic.id },
+      select: { locationId: true },
+    });
+
+    let locationId: string | null = null;
+
+    if (locationMembers.length > 0) {
+      // Tomamos la primera location permitida que esté activa
+      const allowedIds = locationMembers.map((x) => x.locationId);
+      const loc = await prisma.location.findFirst({
+        where: { clinicId: clinic.id, isActive: true, id: { in: allowedIds } },
+        select: { id: true },
+        orderBy: { createdAt: "asc" },
+      });
+      locationId = loc?.id ?? null;
+    } else {
+      // No hay restricciones por location -> primera activa
+      const loc = await prisma.location.findFirst({
+        where: { clinicId: clinic.id, isActive: true },
+        select: { id: true },
+        orderBy: { createdAt: "asc" },
+      });
+      locationId = loc?.id ?? null;
+    }
+
+    if (!locationId) {
+      return NextResponse.json({ ok: false, error: "NO_ACTIVE_LOCATION" }, { status: 409 });
+    }
+
+    const res = NextResponse.json({ ok: true, next: "/dashboard" });
+    const session: SessionShape = { userId: user.id, clinicId: clinic.id, locationId };
+    res.cookies.set(COOKIE_NAME, JSON.stringify(session), {
       httpOnly: true,
-      secure: IS_PROD,
       sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * SESSION_HOURS,
+      maxAge: 60 * 60 * 24 * 7,
     });
-
     return res;
   } catch (e) {
-    console.error("[LOGIN_ERROR]", e);
-    return NextResponse.json({ error: "Error interno en login." }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "SERVER_ERROR" }, { status: 500 });
   }
 }
